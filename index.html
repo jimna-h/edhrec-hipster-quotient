@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Going Rate — Commander Rank Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E0E12;
+    --ink-2:#16161C;
+    --parchment:#F2EADC;
+    --parchment-dim:#E6DCC8;
+    --crimson:#A8334A;
+    --crimson-bright:#C84561;
+    --gold:#C9A227;
+    --gold-dim:#8A7220;
+    --teal:#5B7B7A;
+    --ok:#5C8A5C;
+    --line: rgba(201,162,39,0.35);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--ink);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(168,51,74,0.18), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 100%, rgba(91,123,122,0.10), transparent 60%);
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  .wrap{
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 24px 100px;
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    .reveal{ animation: rise 0.5s ease both; }
+    @keyframes rise{ from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform:none; } }
+  }
+
+  header{
+    text-align:center;
+    margin-bottom: 44px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 14px;
+  }
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: clamp(38px, 7vw, 58px);
+    line-height: 1.02;
+    margin: 0 0 14px;
+    letter-spacing: 0.01em;
+  }
+  h1 em{
+    font-style: italic;
+    color: var(--crimson-bright);
+  }
+  .sub{
+    font-size: 15px;
+    color: rgba(242,234,220,0.62);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.55;
+  }
+
+  /* ---- Input panel ---- */
+  .panel{
+    background: linear-gradient(180deg, var(--ink-2), rgba(22,22,28,0.5));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 26px;
+    margin-bottom: 28px;
+  }
+  .panel-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    display:block;
+    margin-bottom: 12px;
+  }
+
+  .slot-list{
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .slot{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+  .slot-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--gold-dim);
+    width: 18px;
+    flex-shrink:0;
+    text-align:right;
+  }
+  .slot input[type="text"]{
+    flex: 1;
+    background: rgba(242,234,220,0.06);
+    border: 1px solid rgba(242,234,220,0.16);
+    border-radius: 8px;
+    padding: 11px 13px;
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .slot input[type="text"]::placeholder{ color: rgba(242,234,220,0.32); }
+  .slot input[type="text"]:focus{
+    border-color: var(--gold);
+    background: rgba(242,234,220,0.09);
+  }
+  .slot input[type="text"]:focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+
+  .partner-toggle{
+    flex-shrink:0;
+    background: transparent;
+    border: 1px solid rgba(242,234,220,0.2);
+    color: rgba(242,234,220,0.55);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    border-radius: 7px;
+    padding: 10px 11px;
+    cursor:pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .partner-toggle:hover{ border-color: var(--crimson-bright); color: var(--crimson-bright); }
+  .partner-toggle:focus-visible{ outline: 2px solid var(--gold); outline-offset:1px; }
+  .partner-toggle.active{
+    background: rgba(168,51,74,0.18);
+    border-color: var(--crimson-bright);
+    color: var(--crimson-bright);
+  }
+
+  .remove-slot{
+    flex-shrink:0;
+    background: none;
+    border: none;
+    color: rgba(242,234,220,0.32);
+    font-size: 18px;
+    line-height: 1;
+    cursor:pointer;
+    padding: 4px 6px;
+    transition: color 0.15s;
+  }
+  .remove-slot:hover{ color: var(--crimson-bright); }
+  .remove-slot:focus-visible{ outline: 2px solid var(--gold); }
+
+  .panel-actions{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .add-slot{
+    background:none;
+    border: 1px dashed rgba(242,234,220,0.3);
+    color: rgba(242,234,220,0.65);
+    font-family:'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 9px 16px;
+    cursor:pointer;
+    transition: all 0.15s;
+  }
+  .add-slot:hover{ border-color: var(--gold); color: var(--gold); }
+  .add-slot:focus-visible{ outline: 2px solid var(--gold); outline-offset:1px; }
+
+  .check-btn{
+    background: var(--crimson);
+    border: 1px solid var(--crimson-bright);
+    color: var(--parchment);
+    font-family:'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+    padding: 11px 22px;
+    cursor:pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .check-btn:hover{ background: var(--crimson-bright); transform: translateY(-1px); }
+  .check-btn:active{ transform: translateY(0); }
+  .check-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset:2px; }
+  .check-btn:disabled{ opacity:0.5; cursor: default; transform:none; }
+
+  .hint{
+    font-size: 12px;
+    color: rgba(242,234,220,0.4);
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+
+  /* ---- Results ---- */
+  #results{
+    display:flex;
+    flex-direction:column;
+    gap: 14px;
+  }
+
+  .result-card{
+    background: var(--parchment);
+    border-radius: 10px;
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 0 1px rgba(201,162,39,0.18), 0 8px 24px rgba(0,0,0,0.35);
+    overflow: hidden;
+    color: #2A2118;
+  }
+  .result-top{
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+  }
+  .result-name{
+    font-family:'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 23px;
+    line-height: 1.15;
+  }
+  .result-name .partner-link{
+    color: var(--crimson);
+    font-style: italic;
+  }
+  .result-meta{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    margin-top: 5px;
+  }
+
+  .rank-tag{
+    flex-shrink:0;
+    position: relative;
+    background: var(--ink);
+    color: var(--parchment);
+    border-radius: 8px;
+    padding: 9px 16px 9px 14px;
+    text-align:center;
+    min-width: 86px;
+  }
+  .rank-tag::before{
+    content:"";
+    position:absolute;
+    left:-7px;
+    top:50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background: var(--parchment);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--gold);
+  }
+  .rank-tag .num{
+    font-family:'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--gold);
+    display:block;
+    line-height:1;
+  }
+  .rank-tag .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(242,234,220,0.55);
+    display:block;
+    margin-top: 3px;
+  }
+
+  .result-card.partnered .result-top{
+    border-bottom: 1px solid var(--gold-dim);
+  }
+  .partner-rows{
+    padding: 4px 20px 14px;
+  }
+  .partner-row{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    gap: 12px;
+  }
+  .partner-row:last-child{ border-bottom:none; }
+  .partner-row .pname{
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .partner-row .prank{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--crimson);
+    white-space: nowrap;
+  }
+  .combined-note{
+    font-size: 11.5px;
+    color: var(--teal);
+    padding-top: 8px;
+    line-height: 1.5;
+  }
+
+  .result-card.error{
+    border-color: rgba(168,51,74,0.5);
+  }
+  .result-card.error .result-top{ align-items: flex-start; }
+  .error-msg{
+    font-size: 13px;
+    color: #7A3030;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .error-msg a{ color: var(--crimson); text-decoration: underline; }
+
+  .result-card.loading .result-top{
+    opacity: 0.6;
+  }
+  .spinner{
+    width:16px; height:16px;
+    border: 2px solid rgba(42,33,24,0.2);
+    border-top-color: var(--crimson);
+    border-radius:50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink:0;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .empty-state{
+    text-align:center;
+    padding: 40px 20px;
+    color: rgba(242,234,220,0.4);
+    font-size: 14px;
+  }
+
+  footer{
+    text-align:center;
+    margin-top: 56px;
+    font-size: 12px;
+    color: rgba(242,234,220,0.3);
+    line-height: 1.7;
+  }
+  footer a{ color: rgba(242,234,220,0.45); }
+
+  @media (max-width: 480px){
+    .slot{ flex-wrap: wrap; }
+    .partner-toggle{ order: 3; flex: 1; }
+    .result-top{ flex-direction: column; align-items: flex-start; }
+    .rank-tag{ align-self: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="reveal">
+    <p class="eyebrow">EDHREC · Commander Lookup</p>
+    <h1>The Going <em>Rate</em></h1>
+    <p class="sub">Type in your commanders. Find out exactly how the meta sees them — rank pulled live from the Scryfall card database, partners included.</p>
+  </header>
+
+  <div class="panel reveal" style="animation-delay: 0.1s">
+    <span class="panel-label">Your commanders</span>
+    <div class="slot-list" id="slotList"></div>
+    <div class="panel-actions">
+      <button class="add-slot" id="addSlot" type="button">+ Add commander</button>
+      <button class="check-btn" id="checkBtn" type="button">Check ranks</button>
+    </div>
+    <p class="hint">Toggle "+ Partner" on a slot to enter a partner pair, background, or Doctor's companion in one go. Spelling doesn't need to be perfect, but the closer to the card's real name, the better.</p>
+  </div>
+
+  <div id="results"></div>
+
+  <footer>
+    Rank pulled live from EDHREC's own Top Commanders list (all-time popularity).<br>
+    Not affiliated with EDHREC or Wizards of the Coast.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const slotList = document.getElementById('slotList');
+  const addSlotBtn = document.getElementById('addSlot');
+  const checkBtn = document.getElementById('checkBtn');
+  const resultsEl = document.getElementById('results');
+
+  let slotId = 0;
+  const slots = []; // { id, hasPartner }
+
+  function createSlot(hasPartner){
+    const id = slotId++;
+    slots.push({ id, hasPartner: !!hasPartner });
+    const row = document.createElement('div');
+    row.className = 'slot';
+    row.dataset.id = id;
+    row.innerHTML = `
+      <span class="slot-num">${slots.length}</span>
+      <input type="text" class="cmd-input" placeholder="Commander name…" autocomplete="off">
+      <input type="text" class="partner-input" placeholder="Partner name…" autocomplete="off" style="display:${hasPartner ? 'block' : 'none'}">
+      <button type="button" class="partner-toggle ${hasPartner ? 'active' : ''}">${hasPartner ? '− Partner' : '+ Partner'}</button>
+      <button type="button" class="remove-slot" aria-label="Remove commander slot">×</button>
+    `;
+    slotList.appendChild(row);
+
+    const partnerInput = row.querySelector('.partner-input');
+    const partnerToggle = row.querySelector('.partner-toggle');
+    partnerToggle.addEventListener('click', () => {
+      const showing = partnerInput.style.display !== 'none';
+      partnerInput.style.display = showing ? 'none' : 'block';
+      partnerToggle.textContent = showing ? '+ Partner' : '− Partner';
+      partnerToggle.classList.toggle('active', !showing);
+      if (showing) partnerInput.value = '';
+    });
+
+    row.querySelector('.remove-slot').addEventListener('click', () => {
+      row.remove();
+      renumber();
+    });
+
+    return row;
+  }
+
+  function renumber(){
+    [...slotList.children].forEach((row, i) => {
+      row.querySelector('.slot-num').textContent = i + 1;
+    });
+  }
+
+  addSlotBtn.addEventListener('click', () => createSlot(false));
+
+  // Seed with 3 empty slots to start
+  createSlot(false);
+  createSlot(false);
+  createSlot(false);
+
+  // ---- EDHREC Top Commanders list search ----
+  // EDHREC doesn't expose a "look up this one commander's rank" endpoint.
+  // The rank only exists as a field inside the paginated Top Commanders list
+  // (confirmed live: https://json-cloudflare.edhrec.com/pages/commanders/year-past2years-1.json
+  // returns { cardviews: [{ name, sanitized, rank, num_decks, ... }], more: "commanders/year-past2years-2.json" }).
+  // So checking a commander means paging through that list until a match turns up.
+
+  const EDHREC_JSON_BASE = 'https://json-cloudflare.edhrec.com';
+  const START_PAGE = '/pages/commanders/year-past2years-1.json';
+  const MAX_PAGES = 60; // ~6,000 commanders deep; covers everything but the most obscure brews
+
+  // Cache fetched pages for the lifetime of this tab, so checking several
+  // commanders doesn't re-fetch pages already seen.
+  const pageCache = new Map(); // path -> { cardviews, more }
+  let cachedOrder = []; // path order as discovered, for resuming a scan from the start
+
+  function sanitizeForMatch(name){
+    return name
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+      .replace(/[''",.]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  async function fetchPage(path){
+    if (pageCache.has(path)) return pageCache.get(path);
+    // Callers always pass a path already normalized to start with /pages/
+    const url = `${EDHREC_JSON_BASE}${path}`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) {
+      throw { networkError: true, message: `EDHREC returned an error (${res.status}) while loading the rankings.` };
+    }
+    const data = await res.json();
+    const entry = { cardviews: data.cardviews || [], more: data.more || null };
+    pageCache.set(path, entry);
+    cachedOrder.push(path);
+    return entry;
+  }
+
+  function morePathToPagesPath(more){
+    // "more" comes back as e.g. "commanders/year-past2years-2.json" (no leading /pages/)
+    if (!more) return null;
+    return `/pages/${more.replace(/^\/?pages\//, '')}`;
+  }
+
+  // Searches the Top Commanders list for an entry whose sanitized slug matches.
+  // Returns the matching cardview object, or null if not found within MAX_PAGES.
+  async function findInTopCommanders(targetSanitized){
+    let path = START_PAGE;
+    for (let i = 0; i < MAX_PAGES && path; i++) {
+      const page = await fetchPage(path);
+      const match = page.cardviews.find(cv => cv.sanitized === targetSanitized);
+      if (match) return match;
+      path = morePathToPagesPath(page.more);
+    }
+    return null;
+  }
+
+  // Scryfall asks for politeness on rapid requests; EDHREC's Cloudflare-fronted
+  // endpoint is more tolerant, but a light stagger keeps this a good citizen
+  // when several commanders are being checked in the same batch.
+  let requestQueue = Promise.resolve();
+  function throttle(fn){
+    const run = requestQueue.then(fn);
+    requestQueue = run.then(() => new Promise(r => setTimeout(r, 60)), () => new Promise(r => setTimeout(r, 60)));
+    return run;
+  }
+
+  // Looks up a single commander by name. Returns the matching cardview, or throws { notFound: true }.
+  async function lookupCommander(name){
+    const slug = sanitizeForMatch(name);
+    const match = await throttle(() => findInTopCommanders(slug));
+    if (!match) {
+      throw { notFound: true, message: 'Not found in the Top Commanders list.' };
+    }
+    return match;
+  }
+
+  // Looks up a partner pair as a single combined entry (EDHREC ranks partner
+  // pairs together, e.g. "thrasios-triton-hero-tymna-the-weaver"). Falls back
+  // to two separate lookups if no combined entry exists.
+  async function lookupPartnerPair(nameA, nameB){
+    const slugA = sanitizeForMatch(nameA);
+    const slugB = sanitizeForMatch(nameB);
+    const combinedSlug = `${slugA}-${slugB}`;
+    const combinedSlugReversed = `${slugB}-${slugA}`;
+
+    const combined = await throttle(() => findInTopCommandersEither(combinedSlug, combinedSlugReversed));
+    if (combined) {
+      return { combined };
+    }
+
+    // No combined entry — look each half up separately instead of failing outright.
+    const [resA, resB] = await Promise.all([
+      lookupCommander(nameA).then(cv => ({ cv })).catch(err => ({ error: err })),
+      lookupCommander(nameB).then(cv => ({ cv })).catch(err => ({ error: err })),
+    ]);
+    return { separate: [resA, resB] };
+  }
+
+  async function findInTopCommandersEither(slugA, slugB){
+    let path = START_PAGE;
+    for (let i = 0; i < MAX_PAGES && path; i++) {
+      const page = await fetchPage(path);
+      const match = page.cardviews.find(cv => cv.sanitized === slugA || cv.sanitized === slugB);
+      if (match) return match;
+      path = morePathToPagesPath(page.more);
+    }
+    return null;
+  }
+
+  function edhrecUrlForSlug(slug){
+    return `https://edhrec.com/commanders/${slug}`;
+  }
+
+  function rankBadgeHTML(rank){
+    if (rank === null || rank === undefined) {
+      return `<div class="rank-tag" style="background:#3a3026;"><span class="num" style="color:#b8a888; font-size:14px;">N/A</span><span class="label">unranked</span></div>`;
+    }
+    return `<div class="rank-tag"><span class="num">#${rank.toLocaleString()}</span><span class="label">EDHREC rank</span></div>`;
+  }
+
+  function renderLoading(container, label){
+    container.innerHTML = `
+      <div class="result-top">
+        <div>
+          <div class="result-name">${escapeHTML(label)}</div>
+          <div class="result-meta">scanning the rankings…</div>
+        </div>
+        <div class="spinner"></div>
+      </div>
+    `;
+    container.className = 'result-card loading';
+  }
+
+  function escapeHTML(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function renderSingleResult(container, cardview){
+    container.className = 'result-card';
+    container.innerHTML = `
+      <div class="result-top">
+        <div>
+          <div class="result-name">${escapeHTML(cardview.name)}</div>
+          <div class="result-meta">${cardview.num_decks ? cardview.num_decks.toLocaleString() + ' decks' : ''}</div>
+        </div>
+        ${rankBadgeHTML(cardview.rank)}
+      </div>
+    `;
+  }
+
+  function renderCombinedPartnerResult(container, cardview){
+    container.className = 'result-card partnered';
+    const names = cardview.names && cardview.names.length === 2 ? cardview.names : [cardview.name];
+    container.innerHTML = `
+      <div class="result-top">
+        <div>
+          <div class="result-name">${escapeHTML(names[0])} <span class="partner-link">+ ${escapeHTML(names[1] || '')}</span></div>
+          <div class="result-meta">partner pair · ${cardview.num_decks ? cardview.num_decks.toLocaleString() + ' decks' : ''}</div>
+        </div>
+        ${rankBadgeHTML(cardview.rank)}
+      </div>
+    `;
+  }
+
+  function renderSeparatePartnerResult(container, primaryName, partnerName, results){
+    container.className = 'result-card partnered';
+    const [a, b] = results;
+
+    const rowsHTML = results.map((r, idx) => {
+      const fallbackName = idx === 0 ? primaryName : partnerName;
+      if (r.error) {
+        return `<div class="partner-row">
+          <span class="pname">${escapeHTML(fallbackName)}</span>
+          <span class="prank" style="color:#7A3030; font-family:'Inter',sans-serif; font-weight:500; font-size:12.5px;">not found</span>
+        </div>`;
+      }
+      return `<div class="partner-row">
+        <span class="pname">${escapeHTML(r.cv.name)}</span>
+        <span class="prank">${r.cv.rank ? '#' + r.cv.rank.toLocaleString() : 'N/A'}</span>
+      </div>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="result-top">
+        <div>
+          <div class="result-name">${escapeHTML(a.error ? primaryName : a.cv.name)} <span class="partner-link">+ ${escapeHTML(b.error ? partnerName : b.cv.name)}</span></div>
+          <div class="result-meta">partner pair · ranked separately</div>
+        </div>
+      </div>
+      <div class="partner-rows">
+        ${rowsHTML}
+        <div class="combined-note">EDHREC doesn't have a combined entry for this pair, so each half is shown with its own individual commander rank.</div>
+      </div>
+    `;
+  }
+
+  function renderError(container, name, errInfo){
+    container.className = 'result-card error';
+    const url = edhrecUrlForSlug(sanitizeForMatch(name));
+    container.innerHTML = `
+      <div class="result-top">
+        <div>
+          <div class="result-name">${escapeHTML(name)}</div>
+          <div class="error-msg">
+            Couldn't find this in EDHREC's Top Commanders list (checked the top ${(MAX_PAGES * 100).toLocaleString()} commanders). Check the spelling, or
+            <a href="${url}" target="_blank" rel="noopener">look it up on EDHREC directly →</a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function handleCheck(){
+    const rows = [...slotList.children];
+    const entries = rows.map(row => {
+      const primary = row.querySelector('.cmd-input').value.trim();
+      const partnerInputVisible = row.querySelector('.partner-input').style.display !== 'none';
+      const partner = partnerInputVisible ? row.querySelector('.partner-input').value.trim() : '';
+      return { primary, partner };
+    }).filter(e => e.primary.length > 0);
+
+    if (entries.length === 0) {
+      resultsEl.innerHTML = `<div class="empty-state">Type at least one commander name above, then hit "Check ranks."</div>`;
+      return;
+    }
+
+    checkBtn.disabled = true;
+    checkBtn.textContent = 'Checking…';
+    resultsEl.innerHTML = '';
+
+    const containers = entries.map(entry => {
+      const div = document.createElement('div');
+      div.className = 'result-card reveal';
+      const label = entry.partner ? `${entry.primary} + ${entry.partner}` : entry.primary;
+      renderLoading(div, label);
+      resultsEl.appendChild(div);
+      return div;
+    });
+
+    // Sequential, not parallel: every lookup walks the same shared page cache,
+    // so running them one at a time avoids duplicate fetches of the same pages
+    // and keeps requests to EDHREC's endpoint orderly.
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const container = containers[i];
+      try {
+        if (entry.partner) {
+          const result = await lookupPartnerPair(entry.primary, entry.partner);
+          if (result.combined) {
+            renderCombinedPartnerResult(container, result.combined);
+          } else {
+            renderSeparatePartnerResult(container, entry.primary, entry.partner, result.separate);
+          }
+        } else {
+          const cardview = await lookupCommander(entry.primary);
+          renderSingleResult(container, cardview);
+        }
+      } catch (err) {
+        renderError(container, entry.primary, err);
+      }
+    }
+
+    checkBtn.disabled = false;
+    checkBtn.textContent = 'Check ranks';
+  }
+
+  checkBtn.addEventListener('click', handleCheck);
+
+  // Allow Enter key inside any text input to trigger a check
+  slotList.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+      e.preventDefault();
+      handleCheck();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
