@@ -1,0 +1,1 @@
+# edhrec-hipster-quotient
