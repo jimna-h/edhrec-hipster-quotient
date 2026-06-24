@@ -806,22 +806,34 @@
 
   // ---- EDHREC Top Commanders list search ----
   // EDHREC doesn't expose a "look up this one commander's rank" endpoint.
-  // The rank only exists as a field inside the paginated Top Commanders list
-  // (confirmed live: https://json-cloudflare.edhrec.com/pages/commanders/year-past2years-1.json
-  // returns { cardviews: [{ name, sanitized, rank, num_decks, ... }], more: "commanders/year-past2years-2.json" }).
-  // So checking a commander means paging through that list until a match turns up.
+  // The rank only exists as a field inside the paginated Top Commanders list.
+  // That list turns out to be split across two different hosts/shapes:
+  //   - Ranks 1-100 live ONLY on the Next.js page-data route
+  //     (https://edhrec.com/_next/data/{buildId}/commanders.json), which is
+  //     what the site itself loads on first visit to edhrec.com/commanders.
+  //   - Ranks 101+ live on the Cloudflare-fronted static JSON pages
+  //     (https://json-cloudflare.edhrec.com/pages/commanders/year-past2years-N.json),
+  //     which is what fires when you click "Load More" on that same page.
+  // Confirmed live by inspecting real network traffic from edhrec.com.
+  // So checking a commander means checking the top-100 page first, then
+  // paging through the Cloudflare series from rank 101 onward.
 
   const EDHREC_JSON_BASE = 'https://json-cloudflare.edhrec.com';
-  const START_PAGE = '/pages/commanders/year-past2years-1.json';
+  const TOP100_PATH = '__top100__'; // synthetic cache key; not a real URL
+  const START_PAGE = '/pages/commanders/year-past2years-1.json'; // ranks 101-200
   const MAX_PAGES = 60; // ~6,000 commanders deep; covers everything but the most obscure brews
+  const FALLBACK_BUILD_ID = 'zfX6Q3Ul2SwjmZV1m7mhR'; // last known build ID; EDHREC rotates this on deploy
 
   // Cache fetched pages for the lifetime of this tab, so checking several
   // commanders doesn't re-fetch pages already seen.
   const pageCache = new Map(); // path -> { cardviews, more }
   let cachedOrder = []; // path order as discovered, for resuming a scan from the start
+  let cachedBuildId = null;
 
   function sanitizeForMatch(name){
     return name
+      .split('//')[0] // double-faced cards (e.g. "Valki // Tibalt") are slugged by front face only
+      .trim()
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
       .replace(/[''",.]/g, '')
@@ -829,7 +841,59 @@
       .replace(/^-+|-+$/g, '');
   }
 
+  // EDHREC's Next.js build ID changes whenever they redeploy, so it can't be
+  // hardcoded reliably. Scrape it out of the homepage's __NEXT_DATA__ script
+  // tag at runtime, same approach real EDHREC client libraries use. Falls
+  // back to the last known build ID if the homepage fetch fails for any
+  // reason (CORS, network, parsing) — that fallback may itself be stale, in
+  // which case the top-100 fetch below will simply fail and we move on
+  // without ranks 1-100 rather than breaking the whole lookup.
+  async function getBuildId(){
+    if (cachedBuildId) return cachedBuildId;
+    try {
+      const res = await fetch('https://edhrec.com/', { headers: { 'Accept': 'text/html' } });
+      if (!res.ok) throw new Error('bad status');
+      const html = await res.text();
+      const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s);
+      if (!match) throw new Error('no __NEXT_DATA__ found');
+      const parsed = JSON.parse(match[1]);
+      cachedBuildId = parsed.buildId || FALLBACK_BUILD_ID;
+    } catch {
+      cachedBuildId = FALLBACK_BUILD_ID;
+    }
+    return cachedBuildId;
+  }
+
+  // Fetches and normalizes the top-100 page into the same { cardviews, more }
+  // shape the rest of the pipeline expects, so callers don't need to care
+  // that it comes from a different host with a different raw structure.
+  async function fetchTop100Page(){
+    if (pageCache.has(TOP100_PATH)) return pageCache.get(TOP100_PATH);
+    const buildId = await getBuildId();
+    const url = `https://edhrec.com/_next/data/${buildId}/commanders.json`;
+    let entry;
+    try {
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error(`bad status ${res.status}`);
+      const data = await res.json();
+      const cardlists = data?.pageProps?.data?.container?.json_dict?.cardlists || [];
+      const cardviews = cardlists[0]?.cardviews || [];
+      // Continue into the normal Cloudflare-paginated series afterward, same
+      // as if this page had its own "more" pointer to rank 101+.
+      entry = { cardviews, more: 'commanders/year-past2years-1.json' };
+    } catch {
+      // If the top-100 page can't be fetched at all (stale build ID, CORS,
+      // homepage unreachable), skip straight to rank 101+ rather than fail
+      // the whole lookup — better to miss the top 100 than break entirely.
+      entry = { cardviews: [], more: 'commanders/year-past2years-1.json' };
+    }
+    pageCache.set(TOP100_PATH, entry);
+    cachedOrder.push(TOP100_PATH);
+    return entry;
+  }
+
   async function fetchPage(path){
+    if (path === TOP100_PATH) return fetchTop100Page();
     if (pageCache.has(path)) return pageCache.get(path);
     // Callers always pass a path already normalized to start with /pages/
     const url = `${EDHREC_JSON_BASE}${path}`;
@@ -853,12 +917,12 @@
   // Searches the Top Commanders list for an entry whose sanitized slug matches.
   // Returns the matching cardview object, or null if not found within MAX_PAGES.
   async function findInTopCommanders(targetSanitized){
-    let path = START_PAGE;
+    let path = TOP100_PATH;
     for (let i = 0; i < MAX_PAGES && path; i++) {
       const page = await fetchPage(path);
       const match = page.cardviews.find(cv => cv.sanitized === targetSanitized);
       if (match) return match;
-      path = morePathToPagesPath(page.more);
+      path = path === TOP100_PATH ? START_PAGE : morePathToPagesPath(page.more);
     }
     return null;
   }
@@ -906,12 +970,12 @@
   }
 
   async function findInTopCommandersEither(slugA, slugB){
-    let path = START_PAGE;
+    let path = TOP100_PATH;
     for (let i = 0; i < MAX_PAGES && path; i++) {
       const page = await fetchPage(path);
       const match = page.cardviews.find(cv => cv.sanitized === slugA || cv.sanitized === slugB);
       if (match) return match;
-      path = morePathToPagesPath(page.more);
+      path = path === TOP100_PATH ? START_PAGE : morePathToPagesPath(page.more);
     }
     return null;
   }
