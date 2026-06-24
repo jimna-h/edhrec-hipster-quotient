@@ -509,18 +509,38 @@
   }
 
   // ---- Name autocomplete (Scryfall) ----
-  // Scryfall's /cards/autocomplete is a fast, official, CORS-enabled endpoint
-  // built exactly for "suggest names as you type" UI — separate from the
-  // EDHREC rank lookup below, which only happens once a name is chosen/submitted.
+  // /cards/autocomplete is the natural choice for "suggest as you type" UI, but
+  // it has no way to filter by is:commander — it only takes a bare name fragment.
+  // So instead this uses /cards/search with an is:commander filter, which
+  // restricts results to cards that can actually lead a Commander deck
+  // (creatures, Backgrounds, Doctor's companions, etc) and trims the response
+  // down to just the names the dropdown needs.
   const autocompleteCache = new Map(); // query -> string[]
 
   async function fetchAutocomplete(query){
     if (autocompleteCache.has(query)) return autocompleteCache.get(query);
-    const url = `https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(query)}`;
+    const q = `is:commander ${query}`;
+    const url = `https://api.scryfall.com/cards/search?order=edhrec&q=${encodeURIComponent(q)}`;
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (res.status === 404) {
+      // Scryfall returns 404 for zero matches, not an empty list
+      autocompleteCache.set(query, []);
+      return [];
+    }
     if (!res.ok) return [];
     const data = await res.json();
-    const names = Array.isArray(data.data) ? data.data : [];
+    const cards = Array.isArray(data.data) ? data.data : [];
+    // De-dupe names (multiple printings of the same card share a name) and cap
+    // the list at a reasonable size for a dropdown.
+    const seen = new Set();
+    const names = [];
+    for (const card of cards) {
+      if (!seen.has(card.name)) {
+        seen.add(card.name);
+        names.push(card.name);
+      }
+      if (names.length >= 20) break;
+    }
     autocompleteCache.set(query, names);
     return names;
   }
