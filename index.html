@@ -382,16 +382,6 @@
     line-height: 1.5;
   }
 
-  .verdict{
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 15px;
-    color: var(--crimson);
-    padding: 0 20px 16px;
-    margin-top: -4px;
-    line-height: 1.4;
-  }
-
   .overall-card{
     margin-top: 10px;
     background: linear-gradient(180deg, var(--ink-2), rgba(22,22,28,0.7));
@@ -479,49 +469,56 @@
     color: var(--crimson);
     font-weight: 700;
   }
-  .color-pip-row{
-    display:flex;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .color-pip{
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-family:'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 14px;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 2px 5px rgba(0,0,0,0.25);
-  }
-  .colorless-pip{
-    background: #C9C2B4;
-    color: #2A2118;
-  }
   .profile-note{
     font-size: 13px;
     color: #5C4F3D;
     line-height: 1.5;
+    margin-top: 10px;
   }
-  .cmc-list{ display:flex; flex-direction:column; gap: 2px; }
-  .cmc-row{
+  .bar-chart{
     display:flex;
-    align-items:center;
-    justify-content: space-between;
-    padding: 7px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.07);
-    gap: 12px;
+    align-items: flex-end;
+    gap: 10px;
+    height: 120px;
+    padding-top: 6px;
   }
-  .cmc-row:last-child{ border-bottom:none; }
-  .cmc-name{ font-size: 14px; }
-  .cmc-value{
+  .bar-col{
+    flex: 1;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+  }
+  .bar-track{
+    flex: 1;
+    width: 100%;
+    max-width: 38px;
+    display:flex;
+    align-items: flex-end;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+  }
+  .bar-fill{
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+    transition: height 0.4s ease;
+  }
+  .curve-fill{
+    background: var(--crimson);
+  }
+  .bar-count{
     font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
     font-weight: 700;
-    font-size: 14px;
-    color: var(--crimson);
-    white-space: nowrap;
+    color: #2A2118;
+    margin-top: 6px;
+  }
+  .bar-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5C4F3D;
+    margin-top: 2px;
   }
 
   .result-card.error{
@@ -593,7 +590,6 @@
       <button class="add-slot" id="addSlot" type="button">+ Add commander</button>
       <button class="check-btn" id="checkBtn" type="button">Check ranks</button>
     </div>
-    <p class="hint">"+ Partner" also covers Backgrounds and Doctor's companions, not just the Partner keyword.</p>
   </div>
 
   <div id="results"></div>
@@ -930,7 +926,6 @@
   // into a single POST, which is the right tool here since a deck of several
   // commanders means several names to resolve at once.
   const WUBRG_ORDER = ['W', 'U', 'B', 'R', 'G'];
-  const COLOR_NAMES = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Green' };
 
   async function fetchCardDataBatch(names){
     const uniqueNames = [...new Set(names)];
@@ -964,16 +959,6 @@
     const union = new Set();
     identityArrays.forEach(arr => (arr || []).forEach(c => union.add(c)));
     return WUBRG_ORDER.filter(c => union.has(c));
-  }
-
-
-  function hipsterVerdict(rank){
-    if (rank === null || rank === undefined) return null;
-    if (rank <= 25) return 'A modern classic. Everyone has played against this.';
-    if (rank <= 150) return 'Comfortably mainstream. No one will raise an eyebrow.';
-    if (rank <= 500) return 'Slightly off the beaten path. Respectable.';
-    if (rank <= 1500) return 'Uncommon. People will ask what it does.';
-    return 'Deep cut. You found this one yourself.';
   }
 
   function median(numbers){
@@ -1020,12 +1005,6 @@
     resultsEl.appendChild(summaryEl);
   }
 
-  function colorPipHTML(letter){
-    const fills = { W: '#F8F4E3', U: '#0E68AB', B: '#150B00', R: '#D3202A', G: '#00733E' };
-    const textColors = { W: '#150B00', U: '#F8F4E3', B: '#F8F4E3', R: '#F8F4E3', G: '#F8F4E3' };
-    return `<span class="color-pip" style="background:${fills[letter]}; color:${textColors[letter]};" title="${COLOR_NAMES[letter]}">${letter}</span>`;
-  }
-
   async function renderColorAndManaProfile(resolvedNames){
     if (resolvedNames.length === 0) return; // nothing resolved, nothing to show
 
@@ -1039,35 +1018,67 @@
 
     const identities = found.map(f => f.data.colorIdentity);
     const combined = unionColorIdentities(identities);
+
+    // How many commanders include each color — the bar chart's actual data,
+    // distinct from "combined" above (which only answers yes/no per color).
+    const colorCounts = {};
+    WUBRG_ORDER.forEach(c => { colorCounts[c] = 0; });
+    identities.forEach(idArr => (idArr || []).forEach(c => { if (c in colorCounts) colorCounts[c]++; }));
+    const maxColorCount = Math.max(1, ...Object.values(colorCounts));
+
     const cmcs = found.filter(f => f.data.cmc !== null).map(f => f.data.cmc);
     const avgCmc = cmcs.length > 0 ? (cmcs.reduce((a, b) => a + b, 0) / cmcs.length) : null;
 
-    const pipsHTML = combined.length > 0
-      ? combined.map(colorPipHTML).join('')
-      : '<span class="color-pip colorless-pip" title="Colorless">C</span>';
+    // Mana curve: count of commanders at each mana value, 0 up to the highest seen.
+    const maxCmc = cmcs.length > 0 ? Math.max(...cmcs) : 0;
+    const curveBuckets = Array.from({ length: maxCmc + 1 }, () => 0);
+    cmcs.forEach(v => { curveBuckets[Math.floor(v)]++; });
+    const maxBucketCount = Math.max(1, ...curveBuckets);
 
-    const cmcRowsHTML = found.map(f => `
-      <div class="cmc-row">
-        <span class="cmc-name">${escapeHTML(f.name)}</span>
-        <span class="cmc-value">${f.data.cmc !== null ? f.data.cmc : '—'}</span>
-      </div>
-    `).join('');
+    const colorFills = { W: '#F8F4E3', U: '#0E68AB', B: '#2A2118', R: '#D3202A', G: '#00733E' };
+
+    const colorBarsHTML = WUBRG_ORDER.map(c => {
+      const count = colorCounts[c];
+      const heightPct = Math.round((count / maxColorCount) * 100);
+      return `
+        <div class="bar-col">
+          <div class="bar-track">
+            <div class="bar-fill" style="height:${count > 0 ? Math.max(heightPct, 6) : 0}%; background:${colorFills[c]};"></div>
+          </div>
+          <div class="bar-count">${count}</div>
+          <div class="bar-label" style="color:${colorFills[c]};">${c}</div>
+        </div>
+      `;
+    }).join('');
+
+    const curveBarsHTML = curveBuckets.map((count, cmc) => {
+      const heightPct = Math.round((count / maxBucketCount) * 100);
+      return `
+        <div class="bar-col">
+          <div class="bar-track">
+            <div class="bar-fill curve-fill" style="height:${count > 0 ? Math.max(heightPct, 6) : 0}%;"></div>
+          </div>
+          <div class="bar-count">${count}</div>
+          <div class="bar-label">${cmc}</div>
+        </div>
+      `;
+    }).join('');
 
     const profileEl = document.createElement('div');
     profileEl.className = 'profile-card reveal';
     profileEl.innerHTML = `
       <div class="profile-title">Color & Mana Profile</div>
       <div class="profile-section">
-        <div class="profile-label">Combined color identity</div>
-        <div class="color-pip-row">${pipsHTML}</div>
+        <div class="profile-label">Colors across your commanders</div>
+        <div class="bar-chart">${colorBarsHTML}</div>
         <div class="profile-note">${combined.length === 0
-          ? "Colorless across the board."
-          : `Your commanders' colors combine to ${combined.map(c => COLOR_NAMES[c]).join('/')}${combined.length >= 4 ? " — basically every land base you own." : "."}`
+          ? 'Colorless across the board.'
+          : `Combined color identity: ${combined.join('')}.`
         }</div>
       </div>
       <div class="profile-section">
-        <div class="profile-label">Mana value by commander${avgCmc !== null ? ` <span class="profile-avg">· avg ${avgCmc.toFixed(1)}</span>` : ''}</div>
-        <div class="cmc-list">${cmcRowsHTML}</div>
+        <div class="profile-label">Mana curve${avgCmc !== null ? ` <span class="profile-avg">· avg ${avgCmc.toFixed(1)}</span>` : ''}</div>
+        <div class="bar-chart">${curveBarsHTML}</div>
       </div>
     `;
     resultsEl.appendChild(profileEl);
@@ -1101,7 +1112,6 @@
 
   function renderSingleResult(container, cardview){
     container.className = 'result-card';
-    const verdict = hipsterVerdict(cardview.rank);
     container.innerHTML = `
       <div class="result-top">
         <div>
@@ -1110,23 +1120,20 @@
         </div>
         ${rankBadgeHTML(cardview.rank)}
       </div>
-      ${verdict ? `<div class="verdict">${escapeHTML(verdict)}</div>` : ''}
     `;
   }
 
   function renderCombinedPartnerResult(container, cardview){
     container.className = 'result-card partnered';
     const names = cardview.names && cardview.names.length === 2 ? cardview.names : [cardview.name];
-    const verdict = hipsterVerdict(cardview.rank);
     container.innerHTML = `
       <div class="result-top">
         <div>
           <div class="result-name">${escapeHTML(names[0])} <span class="partner-link">+ ${escapeHTML(names[1] || '')}</span></div>
-          <div class="result-meta">partner pair · ${cardview.num_decks ? cardview.num_decks.toLocaleString() + ' decks' : ''}</div>
+          <div class="result-meta">${cardview.num_decks ? cardview.num_decks.toLocaleString() + ' decks' : ''}</div>
         </div>
         ${rankBadgeHTML(cardview.rank)}
       </div>
-      ${verdict ? `<div class="verdict">${escapeHTML(verdict)}</div>` : ''}
     `;
   }
 
@@ -1152,7 +1159,7 @@
       <div class="result-top">
         <div>
           <div class="result-name">${escapeHTML(a.error ? primaryName : a.cv.name)} <span class="partner-link">+ ${escapeHTML(b.error ? partnerName : b.cv.name)}</span></div>
-          <div class="result-meta">partner pair · ranked separately</div>
+          <div class="result-meta">ranked separately</div>
         </div>
       </div>
       <div class="partner-rows">
