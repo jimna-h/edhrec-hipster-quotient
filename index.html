@@ -953,14 +953,6 @@
     return byName;
   }
 
-  // Combines color identities the way a multi-commander deck actually works:
-  // a plain union, so overlapping colors are never double-counted.
-  function unionColorIdentities(identityArrays){
-    const union = new Set();
-    identityArrays.forEach(arr => (arr || []).forEach(c => union.add(c)));
-    return WUBRG_ORDER.filter(c => union.has(c));
-  }
-
   function median(numbers){
     const sorted = [...numbers].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
@@ -1028,10 +1020,8 @@
     if (found.length === 0) return; // Scryfall had nothing on any of these — skip the section quietly
 
     const identities = found.map(f => f.data.colorIdentity);
-    const combined = unionColorIdentities(identities);
 
-    // How many commanders include each color — the bar chart's actual data,
-    // distinct from "combined" above (which only answers yes/no per color).
+    // How many commanders include each color — the bar chart's actual data.
     const colorCounts = {};
     WUBRG_ORDER.forEach(c => { colorCounts[c] = 0; });
     identities.forEach(idArr => (idArr || []).forEach(c => { if (c in colorCounts) colorCounts[c]++; }));
@@ -1082,10 +1072,6 @@
       <div class="profile-section">
         <div class="profile-label">Colors across your commanders</div>
         <div class="bar-chart">${colorBarsHTML}</div>
-        <div class="profile-note">${combined.length === 0
-          ? 'Colorless across the board.'
-          : `Combined color identity: ${combined.join('')}.`
-        }</div>
       </div>
       <div class="profile-section">
         <div class="profile-label">Mana curve${avgCmc !== null ? ` <span class="profile-avg">· avg ${avgCmc.toFixed(1)}</span>` : ''}</div>
