@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Going Rate — Commander Rank Checker</title>
+<title>EDH Hipster Quotient</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -368,6 +368,16 @@
     line-height: 1.5;
   }
 
+  .verdict{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--crimson);
+    padding: 0 20px 16px;
+    margin-top: -4px;
+    line-height: 1.4;
+  }
+
   .result-card.error{
     border-color: rgba(168,51,74,0.5);
   }
@@ -423,8 +433,8 @@
 
   <header class="reveal">
     <p class="eyebrow">EDHREC · Commander Lookup</p>
-    <h1>The Going <em>Rate</em></h1>
-    <p class="sub">Type in your commanders. Find out exactly how the meta sees them — rank pulled live from the Scryfall card database, partners included.</p>
+    <h1>EDH Hipster <em>Quotient</em></h1>
+    <p class="sub">Type in your commanders. Find out whether you're a trailblazer or just playing whatever's rank #4 this week — pulled live from EDHREC's own Top Commanders list, partners included.</p>
   </header>
 
   <div class="panel reveal" style="animation-delay: 0.1s">
@@ -758,6 +768,15 @@
     return `https://edhrec.com/commanders/${slug}`;
   }
 
+  function hipsterVerdict(rank){
+    if (rank === null || rank === undefined) return null;
+    if (rank <= 25) return 'A modern classic. Everyone has played against this.';
+    if (rank <= 150) return 'Comfortably mainstream. No one will raise an eyebrow.';
+    if (rank <= 500) return 'Slightly off the beaten path. Respectable.';
+    if (rank <= 1500) return 'Uncommon. People will ask what it does.';
+    return 'Deep cut. You found this one yourself.';
+  }
+
   function rankBadgeHTML(rank){
     if (rank === null || rank === undefined) {
       return `<div class="rank-tag" style="background:#3a3026;"><span class="num" style="color:#b8a888; font-size:14px;">N/A</span><span class="label">unranked</span></div>`;
@@ -786,6 +805,7 @@
 
   function renderSingleResult(container, cardview){
     container.className = 'result-card';
+    const verdict = hipsterVerdict(cardview.rank);
     container.innerHTML = `
       <div class="result-top">
         <div>
@@ -794,12 +814,14 @@
         </div>
         ${rankBadgeHTML(cardview.rank)}
       </div>
+      ${verdict ? `<div class="verdict">${escapeHTML(verdict)}</div>` : ''}
     `;
   }
 
   function renderCombinedPartnerResult(container, cardview){
     container.className = 'result-card partnered';
     const names = cardview.names && cardview.names.length === 2 ? cardview.names : [cardview.name];
+    const verdict = hipsterVerdict(cardview.rank);
     container.innerHTML = `
       <div class="result-top">
         <div>
@@ -808,6 +830,7 @@
         </div>
         ${rankBadgeHTML(cardview.rank)}
       </div>
+      ${verdict ? `<div class="verdict">${escapeHTML(verdict)}</div>` : ''}
     `;
   }
 
@@ -851,7 +874,7 @@
         <div>
           <div class="result-name">${escapeHTML(name)}</div>
           <div class="error-msg">
-            Couldn't find this in EDHREC's Top Commanders list (checked the top ${(MAX_PAGES * 100).toLocaleString()} commanders). Check the spelling, or
+            Not in EDHREC's top ${(MAX_PAGES * 100).toLocaleString()} commanders — either a typo, or you've genuinely gone off the grid. Check the spelling, or
             <a href="${url}" target="_blank" rel="noopener">look it up on EDHREC directly →</a>
           </div>
         </div>
