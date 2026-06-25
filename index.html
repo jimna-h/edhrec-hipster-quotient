@@ -229,6 +229,12 @@
     margin-top: 16px;
     flex-wrap: wrap;
   }
+  .panel-actions-left{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
   .add-slot{
     background:none;
     border: 1px dashed rgba(242,234,220,0.3);
@@ -243,6 +249,22 @@
   }
   .add-slot:hover{ border-color: var(--gold); color: var(--gold); }
   .add-slot:focus-visible{ outline: 2px solid var(--gold); outline-offset:1px; }
+
+  .reset-btn{
+    background:none;
+    border: none;
+    color: rgba(242,234,220,0.45);
+    font-family:'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 6px;
+    cursor:pointer;
+    transition: color 0.15s;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+  }
+  .reset-btn:hover{ color: var(--crimson-bright); text-decoration-color: currentColor; }
+  .reset-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset:1px; }
 
   .check-btn{
     background: var(--crimson);
@@ -588,7 +610,10 @@
     <span class="panel-label">Your commanders</span>
     <div class="slot-list" id="slotList"></div>
     <div class="panel-actions">
-      <button class="add-slot" id="addSlot" type="button">+ Add commander</button>
+      <div class="panel-actions-left">
+        <button class="add-slot" id="addSlot" type="button">+ Add commander</button>
+        <button class="reset-btn" id="resetBtn" type="button">Reset</button>
+      </div>
       <button class="check-btn" id="checkBtn" type="button">Check ranks</button>
     </div>
   </div>
@@ -606,12 +631,54 @@
 (function(){
   const slotList = document.getElementById('slotList');
   const addSlotBtn = document.getElementById('addSlot');
+  const resetBtn = document.getElementById('resetBtn');
   const checkBtn = document.getElementById('checkBtn');
   const resultsEl = document.getElementById('results');
 
   let slotId = 0;
 
-  function createSlot(hasPartner){
+  // ---- Local persistence ----
+  // Saves just the raw input values (commander name + partner name, if any)
+  // for every slot, so a page refresh doesn't wipe out what the user typed.
+  // Deliberately doesn't cache rank/color results — those go stale and are
+  // cheap to re-fetch; only the user's own typed input is worth keeping.
+  const STORAGE_KEY = 'edh-hipster-quotient:slots';
+
+  function saveSlotsToStorage(){
+    try {
+      const rows = [...slotList.children];
+      const data = rows.map(row => {
+        const partnerRowVisible = row.querySelector('.slot-partner-row').style.display !== 'none';
+        return {
+          primary: row.querySelector('.cmd-input').value,
+          partner: partnerRowVisible ? row.querySelector('.partner-input').value : '',
+          hasPartner: partnerRowVisible,
+        };
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      // localStorage can throw in private-browsing modes or when full —
+      // caching is a nice-to-have, so just skip saving rather than break the app
+    }
+  }
+
+  function loadSlotsFromStorage(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (!Array.isArray(data) || data.length === 0) return null;
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  function clearSlotsStorage(){
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* nothing to do */ }
+  }
+
+  function createSlot(hasPartner, initial){
     const id = slotId++;
     const row = document.createElement('div');
     row.className = 'slot';
@@ -620,7 +687,7 @@
       <div class="slot-main">
         <span class="slot-num"></span>
         <div class="field">
-          <input type="text" class="cmd-input" placeholder="Commander name…" autocomplete="off">
+          <input type="text" class="cmd-input" placeholder="Commander name…" autocomplete="off" value="${escapeHTML(initial?.primary || '')}">
           <div class="autocomplete-list"></div>
         </div>
         <button type="button" class="partner-toggle ${hasPartner ? 'active' : ''}">${hasPartner ? '− Partner' : '+ Partner'}</button>
@@ -629,7 +696,7 @@
       <div class="slot-partner-row" style="display:${hasPartner ? 'flex' : 'none'}">
         <span class="slot-num slot-num-spacer" aria-hidden="true">+</span>
         <div class="field">
-          <input type="text" class="partner-input" placeholder="Partner name…" autocomplete="off">
+          <input type="text" class="partner-input" placeholder="Partner name…" autocomplete="off" value="${escapeHTML(initial?.partner || '')}">
           <div class="autocomplete-list"></div>
         </div>
       </div>
@@ -637,11 +704,14 @@
     slotList.appendChild(row);
     renumber();
 
-    wireAutocomplete(row.querySelector('.cmd-input'));
-    wireAutocomplete(row.querySelector('.partner-input'));
+    const cmdInput = row.querySelector('.cmd-input');
+    const partnerInput = row.querySelector('.partner-input');
+    wireAutocomplete(cmdInput);
+    wireAutocomplete(partnerInput);
+    cmdInput.addEventListener('input', saveSlotsToStorage);
+    partnerInput.addEventListener('input', saveSlotsToStorage);
 
     const partnerRow = row.querySelector('.slot-partner-row');
-    const partnerInput = row.querySelector('.partner-input');
     const partnerToggle = row.querySelector('.partner-toggle');
     const partnerDropdown = partnerInput.nextElementSibling;
     partnerToggle.addEventListener('click', () => {
@@ -655,11 +725,13 @@
       } else {
         partnerInput.focus();
       }
+      saveSlotsToStorage();
     });
 
     row.querySelector('.remove-slot').addEventListener('click', () => {
       row.remove();
       renumber();
+      saveSlotsToStorage();
     });
 
     return row;
@@ -682,7 +754,7 @@
 
   async function fetchAutocomplete(query){
     if (autocompleteCache.has(query)) return autocompleteCache.get(query);
-    const q = `is:commander ${query}`;
+    const q = `is:commander f:edh ${query}`;
     const url = `https://api.scryfall.com/cards/search?order=edhrec&q=${encodeURIComponent(q)}`;
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (res.status === 404) {
@@ -798,12 +870,21 @@
     });
   }
 
-  addSlotBtn.addEventListener('click', () => createSlot(false));
+  addSlotBtn.addEventListener('click', () => {
+    createSlot(false);
+    saveSlotsToStorage();
+  });
 
-  // Seed with 3 empty slots to start
-  createSlot(false);
-  createSlot(false);
-  createSlot(false);
+  // Restore from a previous visit if there's anything saved; otherwise start
+  // with 3 empty slots, same as a first-time visitor would see.
+  const savedSlots = loadSlotsFromStorage();
+  if (savedSlots) {
+    savedSlots.forEach(s => createSlot(!!s.hasPartner, { primary: s.primary, partner: s.partner }));
+  } else {
+    createSlot(false);
+    createSlot(false);
+    createSlot(false);
+  }
 
   // ---- EDHREC per-commander rank lookup ----
   // Each commander's own page (https://edhrec.com/commanders/{slug}) embeds
@@ -1281,6 +1362,15 @@
   }
 
   checkBtn.addEventListener('click', handleCheck);
+
+  resetBtn.addEventListener('click', () => {
+    clearSlotsStorage();
+    slotList.innerHTML = '';
+    resultsEl.innerHTML = '';
+    createSlot(false);
+    createSlot(false);
+    createSlot(false);
+  });
 
   // Allow Enter key inside any text input to trigger a check
   slotList.addEventListener('keydown', (e) => {
