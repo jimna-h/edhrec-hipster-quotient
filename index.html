@@ -825,8 +825,14 @@
       .trim()
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
-      .replace(/[''",.]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
+      // EDHREC's slugs only ever turn *whitespace* (and existing hyphens) into
+      // a "-" separator; every other punctuation mark — apostrophes, commas,
+      // periods, colons (regular or the modifier-letter "꞉" some card names
+      // use), exclamation points, question marks, etc. — is deleted outright,
+      // not replaced with a hyphen. e.g. "Ratonhnhaké:ton" -> "ratonhnhaketon",
+      // not "ratonhnhake-ton".
+      .replace(/[^a-z0-9\s-]+/g, '')
+      .replace(/[\s-]+/g, '-')
       .replace(/^-+|-+$/g, '');
   }
 
