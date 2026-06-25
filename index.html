@@ -150,7 +150,6 @@
     position: absolute;
     top: calc(100% + 4px);
     left: 0;
-    right: 0;
     z-index: 20;
     background: var(--ink-2);
     border: 1px solid var(--gold);
@@ -158,7 +157,11 @@
     box-shadow: 0 10px 28px rgba(0,0,0,0.5);
     max-height: 220px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: none;
+    width: max-content;
+    min-width: 100%;
+    max-width: calc(100vw - 48px);
   }
   .autocomplete-list.open{ display: block; }
   .autocomplete-item{
@@ -167,8 +170,6 @@
     color: var(--parchment);
     cursor: pointer;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
   .autocomplete-item:hover,
   .autocomplete-item.active-option{
