@@ -830,8 +830,12 @@
   }
 
   // Fetches a commander's page by slug and extracts the embedded card data.
-  // Returns the card object ({ name, rank, num_decks, ... }) or null if the
-  // page 404s (slug doesn't exist on EDHREC).
+  // Returns the card object ({ name, rank, num_decks, slots: [...] }) or
+  // null if the page 404s (slug doesn't exist on EDHREC). EDHREC's own page
+  // payload already includes each commander's mana value and color identity
+  // (and, for partner pairs, a `cards` array with each half's own cmc/
+  // color_identity individually) — no need to round-trip to Scryfall for any
+  // of this.
   async function fetchCommanderCard(slug){
     if (pageCache.has(slug)) return pageCache.get(slug);
     const url = `https://edhrec.com/commanders/${slug}`;
@@ -848,7 +852,31 @@
         if (!match) throw { networkError: true, message: 'Could not read EDHREC\'s page data.' };
         const parsed = JSON.parse(match[1]);
         const card = parsed?.props?.pageProps?.data?.container?.json_dict?.card || null;
-        result = card ? { name: card.name, rank: card.rank, num_decks: card.num_decks ?? card.inclusion, sanitized: slug } : null;
+        if (!card) {
+          result = null;
+        } else {
+          // For partner pairs, card.cards[] holds each half's own cmc/color_identity
+          // individually; for a single commander, card itself carries those fields
+          // directly and there's no cards[] array at all.
+          const slots = Array.isArray(card.cards) && card.cards.length > 0
+            ? card.cards.map(c => ({
+                name: c.name,
+                cmc: typeof c.cmc === 'number' ? c.cmc : null,
+                colorIdentity: c.color_identity || [],
+              }))
+            : [{
+                name: card.name,
+                cmc: typeof card.cmc === 'number' ? card.cmc : null,
+                colorIdentity: card.color_identity || [],
+              }];
+          result = {
+            name: card.name,
+            rank: card.rank,
+            num_decks: card.num_decks ?? card.inclusion,
+            sanitized: slug,
+            slots,
+          };
+        }
       }
     } catch (err) {
       if (err && (err.networkError || err.notFound)) throw err;
@@ -911,68 +939,12 @@
     return `https://edhrec.com/commanders/${slug}`;
   }
 
-  // ---- Color identity & mana value (Scryfall) ----
-  // The EDHREC Top Commanders list has no color/CMC fields at all — those only
-  // exist on actual card data. /cards/collection batches up to 75 name lookups
-  // into a single POST, which is the right tool here since a deck of several
-  // commanders means several names to resolve at once.
+  // ---- Color identity & mana value ----
+  // No external lookup needed: EDHREC's own page payload already carries each
+  // commander's mana value and color identity (fetchCommanderCard above pulls
+  // these into a `slots` array on every result), so the profile below just
+  // aggregates whatever slots were collected while resolving ranks.
   const WUBRG_ORDER = ['W', 'U', 'B', 'R', 'G'];
-
-  async function fetchCardDataBatch(names){
-    const uniqueNames = [...new Set(names)];
-    if (uniqueNames.length === 0) return new Map();
-
-    const byName = new Map();
-    const notFoundNames = [];
-    // /cards/collection caps at 75 identifiers per request, so chunk just in case
-    // someone pastes in a very long commander list.
-    for (let i = 0; i < uniqueNames.length; i += 75) {
-      const chunk = uniqueNames.slice(i, i + 75);
-      const res = await fetch('https://api.scryfall.com/cards/collection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ identifiers: chunk.map(name => ({ name })) }),
-      });
-      if (!res.ok) { notFoundNames.push(...chunk); continue; } // try fuzzy fallback rather than fail the whole chunk
-      const data = await res.json();
-      (data.data || []).forEach(card => {
-        byName.set(card.name.toLowerCase(), {
-          colorIdentity: card.color_identity || [],
-          cmc: typeof card.cmc === 'number' ? card.cmc : null,
-        });
-      });
-      // exact name lookup fails for transforming double-faced cards: Scryfall's
-      // Oracle name for those is the combined "Front // Back" string (e.g.
-      // "Jecht, Reluctant Guardian // Jecht, Blitzball Star"), not the front
-      // face alone, so a front-face-only name like what EDHREC/the user types
-      // lands in not_found even though the card exists. Resolve those
-      // individually with /cards/named?fuzzy=, which matches on a substring
-      // of either face's name.
-      (data.not_found || []).forEach(identifier => {
-        if (identifier.name) notFoundNames.push(identifier.name);
-      });
-    }
-
-    if (notFoundNames.length > 0) {
-      await Promise.all(notFoundNames.map(name => throttle(async () => {
-        try {
-          const res = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`, {
-            headers: { 'Accept': 'application/json' },
-          });
-          if (!res.ok) return; // genuinely not found, or ambiguous; leave unresolved
-          const card = await res.json();
-          byName.set(name.toLowerCase(), {
-            colorIdentity: card.color_identity || [],
-            cmc: typeof card.cmc === 'number' ? card.cmc : null,
-          });
-        } catch {
-          // network hiccup on this one name — leave it unresolved rather than fail the batch
-        }
-      })));
-    }
-
-    return byName;
-  }
 
   function median(numbers){
     const sorted = [...numbers].sort((a, b) => a - b);
@@ -1029,26 +1001,19 @@
     resultsEl.appendChild(summaryEl);
   }
 
-  async function renderColorAndManaProfile(resolvedNames){
-    if (resolvedNames.length === 0) return; // nothing resolved, nothing to show
+  function renderColorAndManaProfile(resolvedDecks){
+    if (resolvedDecks.length === 0) return; // nothing resolved, nothing to show
 
-    const cardData = await fetchCardDataBatch(resolvedNames);
-    const uniqueNames = [...new Set(resolvedNames)];
-    const found = uniqueNames
-      .map(name => ({ name, data: cardData.get(name.toLowerCase()) }))
-      .filter(entry => entry.data);
-
-    if (found.length === 0) return; // Scryfall had nothing on any of these — skip the section quietly
-
-    const identities = found.map(f => f.data.colorIdentity);
-
-    // How many commanders include each color — the bar chart's actual data.
+    // How many decks include each color — counted once per deck, regardless
+    // of how many of that deck's commanders happen to share the color.
     const colorCounts = {};
     WUBRG_ORDER.forEach(c => { colorCounts[c] = 0; });
-    identities.forEach(idArr => (idArr || []).forEach(c => { if (c in colorCounts) colorCounts[c]++; }));
+    resolvedDecks.forEach(d => (d.colorIdentity || []).forEach(c => { if (c in colorCounts) colorCounts[c]++; }));
     const maxColorCount = Math.max(1, ...Object.values(colorCounts));
 
-    const cmcs = found.filter(f => f.data.cmc !== null).map(f => f.data.cmc);
+    // Mana curve counts every individual commander card (a partner pair
+    // contributes two points on the curve, one per half).
+    const cmcs = resolvedDecks.flatMap(d => d.cmcs);
     const avgCmc = cmcs.length > 0 ? (cmcs.reduce((a, b) => a + b, 0) / cmcs.length) : null;
 
     // Mana curve: count of commanders at each mana value, 0 up to the highest seen.
@@ -1056,6 +1021,7 @@
     const curveBuckets = Array.from({ length: maxCmc + 1 }, () => 0);
     cmcs.forEach(v => { curveBuckets[Math.floor(v)]++; });
     const maxBucketCount = Math.max(1, ...curveBuckets);
+
 
     const colorFills = { W: '#F8F4E3', U: '#0E68AB', B: '#2A2118', R: '#D3202A', G: '#00733E' };
 
@@ -1235,7 +1201,12 @@
     // and keeps requests to EDHREC's endpoint orderly.
     const resolvedRanks = []; // numbers only, one per resolved commander/pair
     let unresolvedCount = 0;
-    const resolvedNames = []; // every individual commander name that resolved, for color/CMC lookup
+    // Mana curve counts every individual commander card (a partner pair has
+    // two real cards on the curve), but color identity is a deck-level
+    // property — a red/red partner pair should only count as "red" once,
+    // not twice — so each entry below is the deck's *unioned* color identity
+    // alongside the per-card cmc list for that same entry.
+    const resolvedDecks = []; // { colorIdentity: string[], cmcs: number[] }
 
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
@@ -1247,29 +1218,39 @@
             renderCombinedPartnerResult(container, result.combined);
             if (result.combined.rank != null) resolvedRanks.push(result.combined.rank);
             else unresolvedCount++;
-            // A combined entry's own slug isn't a real card name Scryfall would
-            // recognize — pull color/CMC for each half individually instead.
-            const pairNames = result.combined.names && result.combined.names.length === 2
-              ? result.combined.names
-              : [entry.primary, entry.partner];
-            resolvedNames.push(...pairNames);
+            // The combined page's own slots[] already breaks the pair back out
+            // into each half's individual cmc/colorIdentity.
+            resolvedDecks.push({
+              colorIdentity: [...new Set(result.combined.slots.flatMap(s => s.colorIdentity || []))],
+              cmcs: result.combined.slots.map(s => s.cmc).filter(c => c !== null),
+            });
           } else {
             renderSeparatePartnerResult(container, entry.primary, entry.partner, result.separate);
+            const okSlots = [];
             result.separate.forEach(r => {
               if (!r.error) {
                 if (r.cv.rank != null) resolvedRanks.push(r.cv.rank); else unresolvedCount++;
-                resolvedNames.push(r.cv.name);
+                okSlots.push(...r.cv.slots);
               } else {
                 unresolvedCount++;
               }
             });
+            if (okSlots.length > 0) {
+              resolvedDecks.push({
+                colorIdentity: [...new Set(okSlots.flatMap(s => s.colorIdentity || []))],
+                cmcs: okSlots.map(s => s.cmc).filter(c => c !== null),
+              });
+            }
           }
         } else {
           const cardview = await lookupCommander(entry.primary);
           renderSingleResult(container, cardview);
           if (cardview.rank != null) resolvedRanks.push(cardview.rank);
           else unresolvedCount++;
-          resolvedNames.push(cardview.name);
+          resolvedDecks.push({
+            colorIdentity: [...new Set(cardview.slots.flatMap(s => s.colorIdentity || []))],
+            cmcs: cardview.slots.map(s => s.cmc).filter(c => c !== null),
+          });
         }
       } catch (err) {
         renderError(container, entry.primary, err);
@@ -1278,7 +1259,7 @@
     }
 
     renderOverallQuotient(resolvedRanks, unresolvedCount);
-    await renderColorAndManaProfile(resolvedNames);
+    renderColorAndManaProfile(resolvedDecks);
 
     checkBtn.disabled = false;
     checkBtn.textContent = 'Check ranks';
