@@ -817,6 +817,7 @@
       if (index < 0 || index >= currentNames.length) return;
       input.value = currentNames[index];
       closeDropdown();
+      saveSlotsToStorage(); // setting .value directly doesn't fire a native 'input' event
     }
 
     function highlightActive(){
