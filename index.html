@@ -855,20 +855,28 @@
         if (!card) {
           result = null;
         } else {
-          // For partner pairs, card.cards[] holds each half's own cmc/color_identity
-          // individually; for a single commander, card itself carries those fields
-          // directly and there's no cards[] array at all.
-          const slots = Array.isArray(card.cards) && card.cards.length > 0
-            ? card.cards.map(c => ({
-                name: c.name,
-                cmc: typeof c.cmc === 'number' ? c.cmc : null,
-                colorIdentity: c.color_identity || [],
-              }))
-            : [{
-                name: card.name,
-                cmc: typeof card.cmc === 'number' ? card.cmc : null,
-                colorIdentity: card.color_identity || [],
-              }];
+          // card.cards[] serves two different purposes that happen to look
+          // identical: for a partner pair, it lists each of the two distinct
+          // commanders (different ids). For a single transforming/modal DFC
+          // commander, EDHREC *also* lists two entries here — one per face —
+          // but both share the same id, since it's one physical card. Dedupe
+          // by id (keeping the first, which is always the front face) so a
+          // single double-faced commander doesn't get counted twice on the
+          // mana curve.
+          const rawCards = Array.isArray(card.cards) && card.cards.length > 0 ? card.cards : [card];
+          const seenIds = new Set();
+          const slots = rawCards
+            .filter(c => {
+              if (c.id == null) return true; // no id to dedupe on — keep it rather than risk dropping a real card
+              if (seenIds.has(c.id)) return false;
+              seenIds.add(c.id);
+              return true;
+            })
+            .map(c => ({
+              name: c.name,
+              cmc: typeof c.cmc === 'number' ? c.cmc : null,
+              colorIdentity: c.color_identity || [],
+            }));
           result = {
             name: card.name,
             rank: card.rank,
