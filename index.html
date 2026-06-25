@@ -923,6 +923,7 @@
     if (uniqueNames.length === 0) return new Map();
 
     const byName = new Map();
+    const notFoundNames = [];
     // /cards/collection caps at 75 identifiers per request, so chunk just in case
     // someone pastes in a very long commander list.
     for (let i = 0; i < uniqueNames.length; i += 75) {
@@ -932,7 +933,7 @@
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ identifiers: chunk.map(name => ({ name })) }),
       });
-      if (!res.ok) continue; // skip this chunk rather than fail the whole feature
+      if (!res.ok) { notFoundNames.push(...chunk); continue; } // try fuzzy fallback rather than fail the whole chunk
       const data = await res.json();
       (data.data || []).forEach(card => {
         byName.set(card.name.toLowerCase(), {
@@ -940,7 +941,36 @@
           cmc: typeof card.cmc === 'number' ? card.cmc : null,
         });
       });
+      // exact name lookup fails for transforming double-faced cards: Scryfall's
+      // Oracle name for those is the combined "Front // Back" string (e.g.
+      // "Jecht, Reluctant Guardian // Jecht, Blitzball Star"), not the front
+      // face alone, so a front-face-only name like what EDHREC/the user types
+      // lands in not_found even though the card exists. Resolve those
+      // individually with /cards/named?fuzzy=, which matches on a substring
+      // of either face's name.
+      (data.not_found || []).forEach(identifier => {
+        if (identifier.name) notFoundNames.push(identifier.name);
+      });
     }
+
+    if (notFoundNames.length > 0) {
+      await Promise.all(notFoundNames.map(name => throttle(async () => {
+        try {
+          const res = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(name)}`, {
+            headers: { 'Accept': 'application/json' },
+          });
+          if (!res.ok) return; // genuinely not found, or ambiguous; leave unresolved
+          const card = await res.json();
+          byName.set(name.toLowerCase(), {
+            colorIdentity: card.color_identity || [],
+            cmc: typeof card.cmc === 'number' ? card.cmc : null,
+          });
+        } catch {
+          // network hiccup on this one name — leave it unresolved rather than fail the batch
+        }
+      })));
+    }
+
     return byName;
   }
 
