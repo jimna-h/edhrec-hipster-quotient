@@ -929,8 +929,15 @@
     if (pageCache.has(slug)) return pageCache.get(slug);
     const url = `https://edhrec.com/commanders/${slug}`;
     let result;
+    // EDHREC's server can be slow (or behave oddly) for slugs that don't
+    // correspond to a real commander — without a timeout, a single bad
+    // lookup (e.g. someone typing "hi" and hitting Check ranks instead of
+    // picking a real suggestion) can hang the whole batch waiting on a
+    // response that may never resolve usefully.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     try {
-      const res = await fetch(url, { headers: { 'Accept': 'text/html' } });
+      const res = await fetch(url, { headers: { 'Accept': 'text/html' }, signal: controller.signal });
       if (res.status === 404) {
         result = null;
       } else if (!res.ok) {
@@ -977,7 +984,12 @@
       }
     } catch (err) {
       if (err && (err.networkError || err.notFound)) throw err;
+      if (err && err.name === 'AbortError') {
+        throw { networkError: true, message: 'EDHREC took too long to respond for that name — double-check the spelling, or try again.' };
+      }
       throw { networkError: true, message: 'Could not reach EDHREC.' };
+    } finally {
+      clearTimeout(timeoutId);
     }
     pageCache.set(slug, result);
     return result;
@@ -1253,12 +1265,15 @@
   function renderError(container, name, errInfo){
     container.className = 'result-card error';
     const url = edhrecUrlForSlug(sanitizeForMatch(name));
+    const message = errInfo && errInfo.notFound
+      ? `EDHREC has no page for that name — check the spelling, or pick a suggestion from the dropdown next time.`
+      : (errInfo && errInfo.message) || `Something went wrong looking that up.`;
     container.innerHTML = `
       <div class="result-top">
         <div>
           <div class="result-name">${escapeHTML(name)}</div>
           <div class="error-msg">
-            Not in EDHREC's top ${(MAX_PAGES * 100).toLocaleString()} commanders — either a typo, or you've genuinely gone off the grid. Check the spelling, or
+            ${escapeHTML(message)}
             <a href="${url}" target="_blank" rel="noopener">look it up on EDHREC directly →</a>
           </div>
         </div>
