@@ -1086,9 +1086,23 @@
 
   // Looks up a partner pair as a single combined entry (EDHREC ranks partner
   // pairs together under a combined slug, e.g.
-  // "thrasios-triton-hero-tymna-the-weaver"). Falls back to two separate
-  // lookups if no combined page exists for either slug order.
+  // "thrasios-triton-hero-tymna-the-weaver"). A combined page can only exist
+  // if both halves are real commanders, so check both names individually
+  // first — cheap and parallel — and only attempt the combined-slug fetch
+  // (2 more sequential requests, trying both name orders) if both resolved.
+  // This means a pair involving a typo'd/fake name fails fast off of just
+  // the individual lookups, instead of also burning two more fetches first
+  // trying combined-slug variants that could never have existed anyway.
   async function lookupPartnerPair(nameA, nameB){
+    const [resA, resB] = await Promise.all([
+      lookupCommander(nameA).then(cv => ({ cv })).catch(err => ({ error: err })),
+      lookupCommander(nameB).then(cv => ({ cv })).catch(err => ({ error: err })),
+    ]);
+
+    if (resA.error || resB.error) {
+      return { separate: [resA, resB] };
+    }
+
     const slugA = sanitizeForMatch(nameA);
     const slugB = sanitizeForMatch(nameB);
     const combinedSlug = `${slugA}-${slugB}`;
@@ -1106,11 +1120,8 @@
       return { combined: { ...combined, names: [nameA, nameB] } };
     }
 
-    // No combined entry — look each half up separately instead of failing outright.
-    const [resA, resB] = await Promise.all([
-      lookupCommander(nameA).then(cv => ({ cv })).catch(err => ({ error: err })),
-      lookupCommander(nameB).then(cv => ({ cv })).catch(err => ({ error: err })),
-    ]);
+    // Both halves are real commanders, but EDHREC has no combined page for
+    // this specific pairing — show each half with its own individual rank.
     return { separate: [resA, resB] };
   }
 
