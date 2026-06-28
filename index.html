@@ -813,7 +813,11 @@
 
   async function fetchAutocomplete(query){
     if (autocompleteCache.has(query)) return autocompleteCache.get(query);
-    const q = `is:commander f:edh ${query}`;
+    // f:edh would exclude previewed-but-not-yet-released commanders, since
+    // Scryfall can't mark a printing "legal" in any format until it's
+    // actually released. This achieves the same practical goal — excluding
+    // joke-set cards and anything banned in Commander — without that gap.
+    const q = `is:commander -border:silver -stamp:acorn -banned:edh ${query}`;
     const url = `https://api.scryfall.com/cards/search?order=edhrec&q=${encodeURIComponent(q)}`;
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
     if (res.status === 404) {
