@@ -202,6 +202,13 @@
     color: var(--parchment);
     margin-bottom: 8px;
   }
+  .color-prompt-context{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
   .color-prompt-sub{
     font-family: 'Inter', sans-serif;
     font-size: 13px;
@@ -1117,43 +1124,31 @@
   // they're using whenever one of these is entered. This list is exact-name
   // based and deliberately small/hardcoded, since there's no field anywhere
   // that would let us detect this case generically.
+  //
+  // Deliberately not cached/persisted anywhere (not even within a single
+  // check run): the same player could run the same "choose a color"
+  // commander as a different color in a different game, so each lookup
+  // asks fresh rather than assuming a prior answer still applies.
   const CHOOSE_A_COLOR_COMMANDERS = new Set([
     'clara oswald',
     'faceless one',
     'the prismatic piper',
   ]);
 
-  const COLOR_CHOICE_STORAGE_KEY = 'edh-hipster-quotient:colorChoices';
   const COLOR_NAMES = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Green' };
-
-  function loadColorChoices(){
-    try {
-      const raw = localStorage.getItem(COLOR_CHOICE_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
-  }
-
-  function saveColorChoice(nameKey, color){
-    try {
-      const choices = loadColorChoices();
-      choices[nameKey] = color;
-      localStorage.setItem(COLOR_CHOICE_STORAGE_KEY, JSON.stringify(choices));
-    } catch {
-      // best-effort; a failed save just means we'll ask again next time
-    }
-  }
 
   // Shows a small inline prompt asking which color a "choose a color"
   // commander is being used as, and resolves to the chosen letter (W/U/B/R/G).
-  function promptForColor(commanderName){
+  // contextLabel identifies which deck slot this is for (e.g. "Slot 2"), so
+  // the prompt is unambiguous when the same commander appears more than once.
+  function promptForColor(commanderName, contextLabel){
     return new Promise(resolve => {
       const overlay = document.createElement('div');
       overlay.className = 'color-prompt-overlay';
       overlay.innerHTML = `
         <div class="color-prompt-box">
           <div class="color-prompt-title">${escapeHTML(commanderName)} needs a color</div>
+          ${contextLabel ? `<div class="color-prompt-context">${escapeHTML(contextLabel)}</div>` : ''}
           <div class="color-prompt-sub">This commander's color is chosen at the start of the game, so EDHREC's data doesn't include it. Pick the color you're using so the chart below is accurate.</div>
           <div class="color-prompt-buttons">
             ${WUBRG_ORDER.map(c => `<button type="button" class="color-prompt-btn color-${c}" data-color="${c}">${COLOR_NAMES[c]}</button>`).join('')}
@@ -1171,21 +1166,16 @@
   }
 
   // Given a card's resolved slots (from fetchCommanderCard), checks whether
-  // any slot is a known "choose a color" commander and, if so, resolves the
-  // color to use for it — from a saved prior choice if we have one, or by
-  // prompting the user. Returns a new slots array with colorIdentity filled
-  // in where applicable; never mutates the input.
-  async function resolveChosenColorSlots(slots){
-    const choices = loadColorChoices();
+  // any slot is a known "choose a color" commander and, if so, prompts for
+  // the color to use for it. Returns a new slots array with colorIdentity
+  // filled in where applicable; never mutates the input. contextLabel is
+  // shown in the prompt to disambiguate which deck slot is being asked about.
+  async function resolveChosenColorSlots(slots, contextLabel){
     const resolved = [];
     for (const slot of slots) {
       const key = (slot.name || '').toLowerCase().trim();
       if (CHOOSE_A_COLOR_COMMANDERS.has(key) && (slot.colorIdentity || []).length === 0) {
-        let color = choices[key];
-        if (!color) {
-          color = await promptForColor(slot.name);
-          saveColorChoice(key, color);
-        }
+        const color = await promptForColor(slot.name, contextLabel);
         resolved.push({ ...slot, colorIdentity: [color] });
       } else {
         resolved.push(slot);
@@ -1478,7 +1468,10 @@
             else unresolvedCount++;
             // The combined page's own slots[] already breaks the pair back out
             // into each half's individual cmc/colorIdentity.
-            const colorResolvedSlots = await resolveChosenColorSlots(result.combined.slots);
+            const colorResolvedSlots = await resolveChosenColorSlots(
+              result.combined.slots,
+              `Slot ${i + 1}: paired with ${entry.primary} & ${entry.partner}`
+            );
             resolvedDecks.push({
               colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
               cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
@@ -1495,7 +1488,10 @@
               }
             });
             if (okSlots.length > 0) {
-              const colorResolvedSlots = await resolveChosenColorSlots(okSlots);
+              const colorResolvedSlots = await resolveChosenColorSlots(
+                okSlots,
+                `Slot ${i + 1}: paired with ${entry.primary} & ${entry.partner}`
+              );
               resolvedDecks.push({
                 colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
                 cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
@@ -1507,7 +1503,7 @@
           renderSingleResult(container, cardview);
           if (cardview.rank != null) resolvedRanks.push(cardview.rank);
           else unresolvedCount++;
-          const colorResolvedSlots = await resolveChosenColorSlots(cardview.slots);
+          const colorResolvedSlots = await resolveChosenColorSlots(cardview.slots, `Slot ${i + 1}`);
           resolvedDecks.push({
             colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
             cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
