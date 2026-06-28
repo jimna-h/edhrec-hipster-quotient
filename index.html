@@ -175,6 +175,65 @@
   .autocomplete-item.active-option{
     background: rgba(201,162,39,0.18);
   }
+
+  .color-prompt-overlay{
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(14,14,18,0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .color-prompt-box{
+    background: var(--ink-2);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  }
+  .color-prompt-title{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--parchment);
+    margin-bottom: 8px;
+  }
+  .color-prompt-sub{
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(242,234,220,0.65);
+    margin-bottom: 18px;
+  }
+  .color-prompt-buttons{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .color-prompt-btn{
+    flex: 1 1 30%;
+    min-width: 80px;
+    border: 1px solid rgba(242,234,220,0.25);
+    border-radius: 8px;
+    padding: 10px 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  .color-prompt-btn:hover{ transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  .color-prompt-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset: 2px; }
+  .color-prompt-btn.color-W{ background:#F8F4E3; color:#2A2118; border-color:#F8F4E3; }
+  .color-prompt-btn.color-U{ background:#0E68AB; color:#F2EADC; border-color:#0E68AB; }
+  .color-prompt-btn.color-B{ background:#2A2118; color:#F2EADC; border-color:#2A2118; }
+  .color-prompt-btn.color-R{ background:#D3202A; color:#F2EADC; border-color:#D3202A; }
+  .color-prompt-btn.color-G{ background:#00733E; color:#F2EADC; border-color:#00733E; }
+
   .slot input[type="text"]::placeholder{ color: rgba(242,234,220,0.32); }
   .slot input[type="text"]:focus{
     border-color: var(--gold);
@@ -1044,8 +1103,91 @@
     return { separate: [resA, resB] };
   }
 
-  function edhrecUrlForSlug(slug){
-    return `https://edhrec.com/commanders/${slug}`;
+  // ---- "Choose a color" commanders ----
+  // A small number of commanders print with no printed color identity at
+  // all (color_identity: [] on both Scryfall and EDHREC) because their color
+  // is chosen by the player at the start of the game, e.g. Clara Oswald,
+  // Faceless One, The Prismatic Piper. EDHREC's own data can't tell us which
+  // color was picked — that's a runtime choice, never recorded anywhere —
+  // so for the color-identity chart specifically, ask the user which color
+  // they're using whenever one of these is entered. This list is exact-name
+  // based and deliberately small/hardcoded, since there's no field anywhere
+  // that would let us detect this case generically.
+  const CHOOSE_A_COLOR_COMMANDERS = new Set([
+    'clara oswald',
+    'faceless one',
+    'the prismatic piper',
+  ]);
+
+  const COLOR_CHOICE_STORAGE_KEY = 'edh-hipster-quotient:colorChoices';
+  const COLOR_NAMES = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Green' };
+
+  function loadColorChoices(){
+    try {
+      const raw = localStorage.getItem(COLOR_CHOICE_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveColorChoice(nameKey, color){
+    try {
+      const choices = loadColorChoices();
+      choices[nameKey] = color;
+      localStorage.setItem(COLOR_CHOICE_STORAGE_KEY, JSON.stringify(choices));
+    } catch {
+      // best-effort; a failed save just means we'll ask again next time
+    }
+  }
+
+  // Shows a small inline prompt asking which color a "choose a color"
+  // commander is being used as, and resolves to the chosen letter (W/U/B/R/G).
+  function promptForColor(commanderName){
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.className = 'color-prompt-overlay';
+      overlay.innerHTML = `
+        <div class="color-prompt-box">
+          <div class="color-prompt-title">${escapeHTML(commanderName)} needs a color</div>
+          <div class="color-prompt-sub">This commander's color is chosen at the start of the game, so EDHREC's data doesn't include it. Pick the color you're using so the chart below is accurate.</div>
+          <div class="color-prompt-buttons">
+            ${WUBRG_ORDER.map(c => `<button type="button" class="color-prompt-btn color-${c}" data-color="${c}">${COLOR_NAMES[c]}</button>`).join('')}
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.querySelectorAll('.color-prompt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          overlay.remove();
+          resolve(btn.dataset.color);
+        });
+      });
+    });
+  }
+
+  // Given a card's resolved slots (from fetchCommanderCard), checks whether
+  // any slot is a known "choose a color" commander and, if so, resolves the
+  // color to use for it — from a saved prior choice if we have one, or by
+  // prompting the user. Returns a new slots array with colorIdentity filled
+  // in where applicable; never mutates the input.
+  async function resolveChosenColorSlots(slots){
+    const choices = loadColorChoices();
+    const resolved = [];
+    for (const slot of slots) {
+      const key = (slot.name || '').toLowerCase().trim();
+      if (CHOOSE_A_COLOR_COMMANDERS.has(key) && (slot.colorIdentity || []).length === 0) {
+        let color = choices[key];
+        if (!color) {
+          color = await promptForColor(slot.name);
+          saveColorChoice(key, color);
+        }
+        resolved.push({ ...slot, colorIdentity: [color] });
+      } else {
+        resolved.push(slot);
+      }
+    }
+    return resolved;
   }
 
   // ---- Color identity & mana value ----
@@ -1332,9 +1474,10 @@
             else unresolvedCount++;
             // The combined page's own slots[] already breaks the pair back out
             // into each half's individual cmc/colorIdentity.
+            const colorResolvedSlots = await resolveChosenColorSlots(result.combined.slots);
             resolvedDecks.push({
-              colorIdentity: [...new Set(result.combined.slots.flatMap(s => s.colorIdentity || []))],
-              cmcs: result.combined.slots.map(s => s.cmc).filter(c => c !== null),
+              colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
+              cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
             });
           } else {
             renderSeparatePartnerResult(container, entry.primary, entry.partner, result.separate);
@@ -1348,9 +1491,10 @@
               }
             });
             if (okSlots.length > 0) {
+              const colorResolvedSlots = await resolveChosenColorSlots(okSlots);
               resolvedDecks.push({
-                colorIdentity: [...new Set(okSlots.flatMap(s => s.colorIdentity || []))],
-                cmcs: okSlots.map(s => s.cmc).filter(c => c !== null),
+                colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
+                cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
               });
             }
           }
@@ -1359,9 +1503,10 @@
           renderSingleResult(container, cardview);
           if (cardview.rank != null) resolvedRanks.push(cardview.rank);
           else unresolvedCount++;
+          const colorResolvedSlots = await resolveChosenColorSlots(cardview.slots);
           resolvedDecks.push({
-            colorIdentity: [...new Set(cardview.slots.flatMap(s => s.colorIdentity || []))],
-            cmcs: cardview.slots.map(s => s.cmc).filter(c => c !== null),
+            colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
+            cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
           });
         }
       } catch (err) {
