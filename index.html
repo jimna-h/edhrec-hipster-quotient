@@ -86,7 +86,13 @@
   .check-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset:2px; }
   .check-btn:disabled{ opacity:0.5; cursor: default; transform:none; }
   #results{ display:flex; flex-direction:column; gap: 14px; }
-  .result-card{ background: var(--parchment); border-radius: 10px; border: 1px solid var(--gold); box-shadow: 0 0 0 1px rgba(201,162,39,0.18), 0 8px 24px rgba(0,0,0,0.35); overflow: hidden; color: #2A2118; }
+  .result-card{ background: var(--parchment); border-radius: 10px; border: 1px solid var(--gold); box-shadow: 0 0 0 1px rgba(201,162,39,0.18), 0 8px 24px rgba(0,0,0,0.35); overflow: hidden; color: #2A2118; transition: opacity 0.2s; }
+  .result-card.excluded{ opacity: 0.45; }
+  .result-card.excluded .rank-tag{ opacity: 0.4; }
+  .result-check-wrap{ display:flex; align-items:center; gap: 10px; flex-shrink:0; }
+  .result-check{ width:18px; height:18px; accent-color: var(--crimson); cursor:pointer; flex-shrink:0; }
+  .result-name a{ color: inherit; text-decoration: none; border-bottom: 1px solid rgba(42,33,24,0.25); transition: border-color 0.15s, color 0.15s; }
+  .result-name a:hover{ color: var(--crimson); border-color: var(--crimson); }
   .result-top{ display:flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; }
   .result-name{ font-family:'Cormorant Garamond', serif; font-weight: 600; font-size: 23px; line-height: 1.15; }
   .result-name .partner-link{ color: var(--crimson); font-style: italic; }
@@ -462,13 +468,15 @@
 
   function renderSingleResult(container,cv){
     container.className='result-card';
-    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(cv.name)}</div><div class="result-meta">${cv.num_decks?cv.num_decks.toLocaleString()+' decks':''}</div></div>${rankBadgeHTML(cv.rank)}</div>`;
+    const url=edhrecUrlForSlug(cv.sanitized||sanitizeForMatch(cv.name));
+    container.innerHTML=`<div class="result-top"><div><div class="result-name"><a href="${url}" target="_blank" rel="noopener">${escapeHTML(cv.name)}</a></div><div class="result-meta">${cv.num_decks?cv.num_decks.toLocaleString()+' decks':''}</div></div><div class="result-check-wrap"><input type="checkbox" class="result-check" checked title="Include in stats">${rankBadgeHTML(cv.rank)}</div></div>`;
   }
 
   function renderCombinedPartnerResult(container,cv){
     container.className='result-card partnered';
     const names=cv.names&&cv.names.length===2?cv.names:[cv.name];
-    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(names[0])} <span class="partner-link">+ ${escapeHTML(names[1]||'')}</span></div><div class="result-meta">${cv.num_decks?cv.num_decks.toLocaleString()+' decks':''}</div></div>${rankBadgeHTML(cv.rank)}</div>`;
+    const url=edhrecUrlForSlug(cv.sanitized||sanitizeForMatch(names[0]));
+    container.innerHTML=`<div class="result-top"><div><div class="result-name"><a href="${url}" target="_blank" rel="noopener">${escapeHTML(names[0])}</a> <span class="partner-link">+ ${escapeHTML(names[1]||'')}</span></div><div class="result-meta">${cv.num_decks?cv.num_decks.toLocaleString()+' decks':''}</div></div><div class="result-check-wrap"><input type="checkbox" class="result-check" checked title="Include in stats">${rankBadgeHTML(cv.rank)}</div></div>`;
   }
 
   function renderSeparatePartnerResult(container,primaryName,partnerName,results){
@@ -477,9 +485,12 @@
     const rowsHTML=results.map((r,idx)=>{
       const fn=idx===0?primaryName:partnerName;
       if(r.error)return`<div class="partner-row"><span class="pname">${escapeHTML(fn)}</span><span class="prank" style="color:#7A3030;font-family:'Inter',sans-serif;font-weight:500;font-size:12.5px;">not found</span></div>`;
-      return`<div class="partner-row"><span class="pname">${escapeHTML(r.cv.name)}</span><span class="prank">${r.cv.rank?'#'+r.cv.rank.toLocaleString():'N/A'}</span></div>`;
+      const purl=edhrecUrlForSlug(r.cv.sanitized||sanitizeForMatch(r.cv.name));
+      return`<div class="partner-row"><span class="pname"><a href="${purl}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(42,33,24,0.25);">${escapeHTML(r.cv.name)}</a></span><span class="prank">${r.cv.rank?'#'+r.cv.rank.toLocaleString():'N/A'}</span></div>`;
     }).join('');
-    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(a.error?primaryName:a.cv.name)} <span class="partner-link">+ ${escapeHTML(b.error?partnerName:b.cv.name)}</span></div><div class="result-meta">ranked separately</div></div></div><div class="partner-rows">${rowsHTML}<div class="combined-note">EDHREC doesn't have a combined entry for this pair, so each half is shown with its own rank.</div></div>`;
+    const aName=a.error?primaryName:a.cv.name;
+    const bName=b.error?partnerName:b.cv.name;
+    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(aName)} <span class="partner-link">+ ${escapeHTML(bName)}</span></div><div class="result-meta">ranked separately</div></div><input type="checkbox" class="result-check" checked title="Include in stats" style="flex-shrink:0;width:18px;height:18px;accent-color:var(--crimson);cursor:pointer;"></div><div class="partner-rows">${rowsHTML}<div class="combined-note">EDHREC doesn't have a combined entry for this pair, so each half is shown with its own rank.</div></div>`;
   }
 
   function renderError(container,name,errInfo){
@@ -544,6 +555,14 @@
       const label=entry.partner?`${entry.primary} + ${entry.partner}`:entry.primary;
       renderLoading(div,label);resultsEl.appendChild(div);return div;
     });
+    // Store result data on containers inline so checkboxes can recompute stats.
+    // We tag each container with its rank and deck data as it resolves,
+    // rather than trying to correlate flat arrays after the fact.
+    containers.forEach(container=>{
+      container.dataset.rank=JSON.stringify(null);
+      container.dataset.deck=JSON.stringify(null);
+    });
+
     const resolvedRanks=[];let unresolvedCount=0;const resolvedDecks=[];
     for(let i=0;i<entries.length;i++){
       const entry=entries[i],container=containers[i];
@@ -554,17 +573,26 @@
             renderCombinedPartnerResult(container,result.combined);
             if(result.combined.rank!=null)resolvedRanks.push(result.combined.rank);else unresolvedCount++;
             const crs=await resolveChosenColorSlots(result.combined.slots,`Slot ${i+1}: paired with ${entry.primary} & ${entry.partner}`);
-            resolvedDecks.push({colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)});
+            const deck={colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)};
+            resolvedDecks.push(deck);
+            container.dataset.rank=JSON.stringify(result.combined.rank??null);
+            container.dataset.deck=JSON.stringify(deck);
           }else{
             renderSeparatePartnerResult(container,entry.primary,entry.partner,result.separate);
             const okSlots=[];
+            const pairRanks=[];
             result.separate.forEach(r=>{
-              if(!r.error){if(r.cv.rank!=null)resolvedRanks.push(r.cv.rank);else unresolvedCount++;okSlots.push(...r.cv.slots);}
+              if(!r.error){if(r.cv.rank!=null){resolvedRanks.push(r.cv.rank);pairRanks.push(r.cv.rank);}else unresolvedCount++;okSlots.push(...r.cv.slots);}
               else unresolvedCount++;
             });
             if(okSlots.length>0){
               const crs=await resolveChosenColorSlots(okSlots,`Slot ${i+1}: paired with ${entry.primary} & ${entry.partner}`);
-              resolvedDecks.push({colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)});
+              const deck={colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)};
+              resolvedDecks.push(deck);
+              // For separate pairs, store the average of their ranks as the checkbox rank
+              const avgRank=pairRanks.length>0?Math.round(pairRanks.reduce((a,b)=>a+b,0)/pairRanks.length):null;
+              container.dataset.rank=JSON.stringify(avgRank);
+              container.dataset.deck=JSON.stringify(deck);
             }
           }
         }else{
@@ -572,12 +600,36 @@
           renderSingleResult(container,cardview);
           if(cardview.rank!=null)resolvedRanks.push(cardview.rank);else unresolvedCount++;
           const crs=await resolveChosenColorSlots(cardview.slots,`Slot ${i+1}`);
-          resolvedDecks.push({colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)});
+          const deck={colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)};
+          resolvedDecks.push(deck);
+          container.dataset.rank=JSON.stringify(cardview.rank??null);
+          container.dataset.deck=JSON.stringify(deck);
         }
       }catch(err){renderError(container,entry.primary,err);unresolvedCount++;}
     }
     renderOverallQuotient(resolvedRanks,unresolvedCount);
     renderColorAndManaProfile(resolvedDecks);
+
+    // Wire checkboxes — toggling one recomputes stats from all checked containers.
+    function recomputeStats(){
+      const all=[...resultsEl.querySelectorAll('.result-card:not(.error):not(.loading)')];
+      all.forEach(c=>{
+        const cb=c.querySelector('.result-check');
+        c.classList.toggle('excluded',!!(cb&&!cb.checked));
+      });
+      const checked=all.filter(c=>!c.classList.contains('excluded'));
+      const ranks=checked.map(c=>JSON.parse(c.dataset.rank||'null')).filter(r=>r!=null);
+      const decks=checked.map(c=>JSON.parse(c.dataset.deck||'null')).filter(d=>d!=null);
+      const unresolved=checked.filter(c=>JSON.parse(c.dataset.rank||'null')===null&&c.dataset.deck).length;
+      resultsEl.querySelectorAll('.overall-card,.profile-card').forEach(el=>el.remove());
+      renderOverallQuotient(ranks,unresolved);
+      renderColorAndManaProfile(decks);
+    }
+
+    resultsEl.querySelectorAll('.result-check').forEach(cb=>{
+      cb.addEventListener('change',recomputeStats);
+    });
+
     checkBtn.disabled=false;checkBtn.textContent='Check ranks';
   }
 
