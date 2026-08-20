@@ -9,19 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#0E0E12;
-    --ink-2:#16161C;
-    --parchment:#F2EADC;
-    --parchment-dim:#E6DCC8;
-    --crimson:#A8334A;
-    --crimson-bright:#C84561;
-    --gold:#C9A227;
-    --gold-dim:#8A7220;
-    --teal:#5B7B7A;
-    --ok:#5C8A5C;
-    --line: rgba(201,162,39,0.35);
+    --ink:#0E0E12;--ink-2:#16161C;--parchment:#F2EADC;--parchment-dim:#E6DCC8;
+    --crimson:#A8334A;--crimson-bright:#C84561;--gold:#C9A227;--gold-dim:#8A7220;
+    --teal:#5B7B7A;--ok:#5C8A5C;--line: rgba(201,162,39,0.35);
   }
-
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; }
   body{
@@ -33,206 +24,37 @@
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
   }
-
-  .wrap{
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 56px 24px 100px;
-  }
-
+  .wrap{ max-width: 760px; margin: 0 auto; padding: 56px 24px 100px; }
   @media (prefers-reduced-motion: no-preference){
     .reveal{ animation: rise 0.5s ease both; }
     @keyframes rise{ from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform:none; } }
   }
-
-  header{
-    text-align:center;
-    margin-bottom: 44px;
-  }
-  .eyebrow{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin: 0 0 14px;
-  }
-  h1{
-    font-family:'Cormorant Garamond', serif;
-    font-weight: 700;
-    font-size: clamp(38px, 7vw, 58px);
-    line-height: 1.02;
-    margin: 0 0 14px;
-    letter-spacing: 0.01em;
-  }
-  h1 em{
-    font-style: italic;
-    color: var(--crimson-bright);
-  }
-  .sub{
-    font-size: 15px;
-    color: rgba(242,234,220,0.62);
-    max-width: 480px;
-    margin: 0 auto;
-    line-height: 1.55;
-  }
-
-  /* ---- Input panel ---- */
-  .panel{
-    background: linear-gradient(180deg, var(--ink-2), rgba(22,22,28,0.5));
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 26px;
-    margin-bottom: 28px;
-  }
-  .panel-label{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--teal);
-    display:block;
-    margin-bottom: 12px;
-  }
-
-  .slot-list{
-    display:flex;
-    flex-direction:column;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .slot{
-    display:flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .slot-main{
-    display:flex;
-    align-items:center;
-    gap: 10px;
-  }
-  .slot-partner-row{
-    display:flex;
-    align-items:center;
-    gap: 10px;
-  }
-  .slot-num{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--gold-dim);
-    width: 18px;
-    flex-shrink:0;
-    text-align:right;
-  }
-  .slot-num-spacer{
-    color: var(--crimson-bright);
-    opacity: 0.7;
-  }
-  .slot input[type="text"]{
-    flex: 1;
-    width: 100%;
-    background: rgba(242,234,220,0.06);
-    border: 1px solid rgba(242,234,220,0.16);
-    border-radius: 8px;
-    padding: 11px 13px;
-    color: var(--parchment);
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .field{
-    position: relative;
-    flex: 1;
-    min-width: 0;
-  }
-  .autocomplete-list{
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    z-index: 20;
-    background: var(--ink-2);
-    border: 1px solid var(--gold);
-    border-radius: 8px;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.5);
-    max-height: 220px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: none;
-    width: max-content;
-    min-width: 100%;
-    max-width: calc(100vw - 48px);
-  }
+  header{ text-align:center; margin-bottom: 44px; }
+  .eyebrow{ font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin: 0 0 14px; }
+  h1{ font-family:'Cormorant Garamond', serif; font-weight: 700; font-size: clamp(38px, 7vw, 58px); line-height: 1.02; margin: 0 0 14px; letter-spacing: 0.01em; }
+  h1 em{ font-style: italic; color: var(--crimson-bright); }
+  .sub{ font-size: 15px; color: rgba(242,234,220,0.62); max-width: 480px; margin: 0 auto; line-height: 1.55; }
+  .panel{ background: linear-gradient(180deg, var(--ink-2), rgba(22,22,28,0.5)); border: 1px solid var(--line); border-radius: 14px; padding: 26px; margin-bottom: 28px; }
+  .panel-label{ font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); display:block; margin-bottom: 12px; }
+  .slot-list{ display:flex; flex-direction:column; gap: 10px; margin-bottom: 14px; }
+  .slot{ display:flex; flex-direction: column; gap: 8px; }
+  .slot-main{ display:flex; align-items:center; gap: 10px; }
+  .slot-partner-row{ display:flex; align-items:center; gap: 10px; }
+  .slot-num{ font-family:'JetBrains Mono', monospace; font-size: 12px; color: var(--gold-dim); width: 18px; flex-shrink:0; text-align:right; }
+  .slot-num-spacer{ color: var(--crimson-bright); opacity: 0.7; }
+  .slot input[type="text"]{ flex: 1; width: 100%; background: rgba(242,234,220,0.06); border: 1px solid rgba(242,234,220,0.16); border-radius: 8px; padding: 11px 13px; color: var(--parchment); font-family: 'Inter', sans-serif; font-size: 15px; outline: none; transition: border-color 0.15s, background 0.15s; }
+  .field{ position: relative; flex: 1; min-width: 0; }
+  .autocomplete-list{ position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; background: var(--ink-2); border: 1px solid var(--gold); border-radius: 8px; box-shadow: 0 10px 28px rgba(0,0,0,0.5); max-height: 220px; overflow-y: auto; overflow-x: hidden; display: none; width: max-content; min-width: 100%; max-width: calc(100vw - 48px); }
   .autocomplete-list.open{ display: block; }
-  .autocomplete-item{
-    padding: 9px 13px;
-    font-size: 14px;
-    color: var(--parchment);
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .autocomplete-item:hover,
-  .autocomplete-item.active-option{
-    background: rgba(201,162,39,0.18);
-  }
-
-  .color-prompt-overlay{
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    background: rgba(14,14,18,0.72);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-  }
-  .color-prompt-box{
-    background: var(--ink-2);
-    border: 1px solid var(--gold);
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 420px;
-    width: 100%;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-  }
-  .color-prompt-title{
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 600;
-    font-size: 20px;
-    color: var(--parchment);
-    margin-bottom: 8px;
-  }
-  .color-prompt-context{
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.02em;
-    color: var(--gold);
-    margin-bottom: 10px;
-  }
-  .color-prompt-sub{
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    line-height: 1.5;
-    color: rgba(242,234,220,0.65);
-    margin-bottom: 18px;
-  }
-  .color-prompt-buttons{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .color-prompt-btn{
-    flex: 1 1 30%;
-    min-width: 80px;
-    border: 1px solid rgba(242,234,220,0.25);
-    border-radius: 8px;
-    padding: 10px 8px;
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.12s, box-shadow 0.12s;
-  }
+  .autocomplete-item{ padding: 9px 13px; font-size: 14px; color: var(--parchment); cursor: pointer; white-space: nowrap; }
+  .autocomplete-item:hover,.autocomplete-item.active-option{ background: rgba(201,162,39,0.18); }
+  .color-prompt-overlay{ position: fixed; inset: 0; z-index: 100; background: rgba(14,14,18,0.72); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .color-prompt-box{ background: var(--ink-2); border: 1px solid var(--gold); border-radius: 12px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+  .color-prompt-title{ font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 20px; color: var(--parchment); margin-bottom: 8px; }
+  .color-prompt-context{ font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.02em; color: var(--gold); margin-bottom: 10px; }
+  .color-prompt-sub{ font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.5; color: rgba(242,234,220,0.65); margin-bottom: 18px; }
+  .color-prompt-buttons{ display: flex; flex-wrap: wrap; gap: 8px; }
+  .color-prompt-btn{ flex: 1 1 30%; min-width: 80px; border: 1px solid rgba(242,234,220,0.25); border-radius: 8px; padding: 10px 8px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; }
   .color-prompt-btn:hover{ transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
   .color-prompt-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset: 2px; }
   .color-prompt-btn.color-W{ background:#F8F4E3; color:#2A2118; border-color:#F8F4E3; }
@@ -240,438 +62,91 @@
   .color-prompt-btn.color-B{ background:#2A2118; color:#F2EADC; border-color:#2A2118; }
   .color-prompt-btn.color-R{ background:#D3202A; color:#F2EADC; border-color:#D3202A; }
   .color-prompt-btn.color-G{ background:#00733E; color:#F2EADC; border-color:#00733E; }
-
   .slot input[type="text"]::placeholder{ color: rgba(242,234,220,0.32); }
-  .slot input[type="text"]:focus{
-    border-color: var(--gold);
-    background: rgba(242,234,220,0.09);
-  }
-  .slot input[type="text"]:focus-visible{
-    outline: 2px solid var(--gold);
-    outline-offset: 1px;
-  }
-
-  .partner-toggle{
-    flex-shrink:0;
-    background: transparent;
-    border: 1px solid rgba(242,234,220,0.2);
-    color: rgba(242,234,220,0.55);
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    border-radius: 7px;
-    padding: 10px 11px;
-    cursor:pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
+  .slot input[type="text"]:focus{ border-color: var(--gold); background: rgba(242,234,220,0.09); }
+  .slot input[type="text"]:focus-visible{ outline: 2px solid var(--gold); outline-offset: 1px; }
+  .partner-toggle{ flex-shrink:0; background: transparent; border: 1px solid rgba(242,234,220,0.2); color: rgba(242,234,220,0.55); font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.04em; border-radius: 7px; padding: 10px 11px; cursor:pointer; transition: all 0.15s; white-space: nowrap; }
   .partner-toggle:hover{ border-color: var(--crimson-bright); color: var(--crimson-bright); }
   .partner-toggle:focus-visible{ outline: 2px solid var(--gold); outline-offset:1px; }
-  .partner-toggle.active{
-    background: rgba(168,51,74,0.18);
-    border-color: var(--crimson-bright);
-    color: var(--crimson-bright);
-  }
-
-  .remove-slot{
-    flex-shrink:0;
-    background: none;
-    border: none;
-    color: rgba(242,234,220,0.32);
-    font-size: 18px;
-    line-height: 1;
-    cursor:pointer;
-    padding: 4px 6px;
-    transition: color 0.15s;
-  }
+  .partner-toggle.active{ background: rgba(168,51,74,0.18); border-color: var(--crimson-bright); color: var(--crimson-bright); }
+  .remove-slot{ flex-shrink:0; background: none; border: none; color: rgba(242,234,220,0.32); font-size: 18px; line-height: 1; cursor:pointer; padding: 4px 6px; transition: color 0.15s; }
   .remove-slot:hover{ color: var(--crimson-bright); }
   .remove-slot:focus-visible{ outline: 2px solid var(--gold); }
-
-  .panel-actions{
-    display:flex;
-    justify-content: space-between;
-    align-items:center;
-    gap: 12px;
-    margin-top: 16px;
-    flex-wrap: wrap;
-  }
-  .panel-actions-left{
-    display:flex;
-    align-items:center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .add-slot{
-    background:none;
-    border: 1px dashed rgba(242,234,220,0.3);
-    color: rgba(242,234,220,0.65);
-    font-family:'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    border-radius: 8px;
-    padding: 9px 16px;
-    cursor:pointer;
-    transition: all 0.15s;
-  }
+  .panel-actions{ display:flex; justify-content: space-between; align-items:center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .panel-actions-left{ display:flex; align-items:center; gap: 10px; flex-wrap: wrap; }
+  .add-slot{ background:none; border: 1px dashed rgba(242,234,220,0.3); color: rgba(242,234,220,0.65); font-family:'Inter', sans-serif; font-size: 13px; font-weight: 500; border-radius: 8px; padding: 9px 16px; cursor:pointer; transition: all 0.15s; }
   .add-slot:hover{ border-color: var(--gold); color: var(--gold); }
   .add-slot:focus-visible{ outline: 2px solid var(--gold); outline-offset:1px; }
-
-  .reset-btn{
-    background:none;
-    border: none;
-    color: rgba(242,234,220,0.45);
-    font-family:'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 9px 6px;
-    cursor:pointer;
-    transition: color 0.15s;
-    text-decoration: underline;
-    text-decoration-color: transparent;
-  }
+  .reset-btn{ background:none; border: none; color: rgba(242,234,220,0.45); font-family:'Inter', sans-serif; font-size: 13px; font-weight: 500; padding: 9px 6px; cursor:pointer; transition: color 0.15s; text-decoration: underline; text-decoration-color: transparent; }
   .reset-btn:hover{ color: var(--crimson-bright); text-decoration-color: currentColor; }
   .reset-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset:1px; }
-
-  .check-btn{
-    background: var(--crimson);
-    border: 1px solid var(--crimson-bright);
-    color: var(--parchment);
-    font-family:'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    border-radius: 8px;
-    padding: 11px 22px;
-    cursor:pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.01em;
-  }
+  .check-btn{ background: var(--crimson); border: 1px solid var(--crimson-bright); color: var(--parchment); font-family:'Inter', sans-serif; font-weight: 600; font-size: 14px; border-radius: 8px; padding: 11px 22px; cursor:pointer; transition: all 0.15s; letter-spacing: 0.01em; }
   .check-btn:hover{ background: var(--crimson-bright); transform: translateY(-1px); }
   .check-btn:active{ transform: translateY(0); }
   .check-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset:2px; }
   .check-btn:disabled{ opacity:0.5; cursor: default; transform:none; }
-
-  .hint{
-    font-size: 12px;
-    color: rgba(242,234,220,0.4);
-    margin-top: 14px;
-    line-height: 1.5;
-  }
-
-  /* ---- Results ---- */
-  #results{
-    display:flex;
-    flex-direction:column;
-    gap: 14px;
-  }
-
-  .result-card{
-    background: var(--parchment);
-    border-radius: 10px;
-    border: 1px solid var(--gold);
-    box-shadow: 0 0 0 1px rgba(201,162,39,0.18), 0 8px 24px rgba(0,0,0,0.35);
-    overflow: hidden;
-    color: #2A2118;
-  }
-  .result-top{
-    display:flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 18px 20px;
-  }
-  .result-name{
-    font-family:'Cormorant Garamond', serif;
-    font-weight: 600;
-    font-size: 23px;
-    line-height: 1.15;
-  }
-  .result-name .partner-link{
-    color: var(--crimson);
-    font-style: italic;
-  }
-  .result-meta{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--teal);
-    margin-top: 5px;
-  }
-
-  .rank-tag{
-    flex-shrink:0;
-    position: relative;
-    background: var(--ink);
-    color: var(--parchment);
-    border-radius: 8px;
-    padding: 9px 16px 9px 14px;
-    text-align:center;
-    min-width: 86px;
-  }
-  .rank-tag::before{
-    content:"";
-    position:absolute;
-    left:-7px;
-    top:50%;
-    transform: translateY(-50%);
-    width: 14px;
-    height: 14px;
-    background: var(--parchment);
-    border-radius: 50%;
-    box-shadow: inset 0 0 0 1px var(--gold);
-  }
-  .rank-tag .num{
-    font-family:'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 22px;
-    color: var(--gold);
-    display:block;
-    line-height:1;
-  }
-  .rank-tag .label{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(242,234,220,0.55);
-    display:block;
-    margin-top: 3px;
-  }
-
-  .result-card.partnered .result-top{
-    border-bottom: 1px solid var(--gold-dim);
-  }
-  .partner-rows{
-    padding: 4px 20px 14px;
-  }
-  .partner-row{
-    display:flex;
-    align-items:center;
-    justify-content: space-between;
-    padding: 9px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
-    gap: 12px;
-  }
+  #results{ display:flex; flex-direction:column; gap: 14px; }
+  .result-card{ background: var(--parchment); border-radius: 10px; border: 1px solid var(--gold); box-shadow: 0 0 0 1px rgba(201,162,39,0.18), 0 8px 24px rgba(0,0,0,0.35); overflow: hidden; color: #2A2118; }
+  .result-top{ display:flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; }
+  .result-name{ font-family:'Cormorant Garamond', serif; font-weight: 600; font-size: 23px; line-height: 1.15; }
+  .result-name .partner-link{ color: var(--crimson); font-style: italic; }
+  .result-meta{ font-family:'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin-top: 5px; }
+  .rank-tag{ flex-shrink:0; position: relative; background: var(--ink); color: var(--parchment); border-radius: 8px; padding: 9px 16px 9px 14px; text-align:center; min-width: 86px; }
+  .rank-tag::before{ content:""; position:absolute; left:-7px; top:50%; transform: translateY(-50%); width: 14px; height: 14px; background: var(--parchment); border-radius: 50%; box-shadow: inset 0 0 0 1px var(--gold); }
+  .rank-tag .num{ font-family:'JetBrains Mono', monospace; font-weight: 700; font-size: 22px; color: var(--gold); display:block; line-height:1; }
+  .rank-tag .label{ font-family:'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(242,234,220,0.55); display:block; margin-top: 3px; }
+  .result-card.partnered .result-top{ border-bottom: 1px solid var(--gold-dim); }
+  .partner-rows{ padding: 4px 20px 14px; }
+  .partner-row{ display:flex; align-items:center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(0,0,0,0.08); gap: 12px; }
   .partner-row:last-child{ border-bottom:none; }
-  .partner-row .pname{
-    font-size: 14px;
-    font-weight: 500;
-  }
-  .partner-row .prank{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--crimson);
-    white-space: nowrap;
-  }
-  .combined-note{
-    font-size: 11.5px;
-    color: var(--teal);
-    padding-top: 8px;
-    line-height: 1.5;
-  }
-
-  .overall-card{
-    margin-top: 10px;
-    background: linear-gradient(180deg, var(--ink-2), rgba(22,22,28,0.7));
-    border: 1px solid var(--gold);
-    box-shadow: 0 0 0 1px rgba(201,162,39,0.25), 0 10px 30px rgba(0,0,0,0.45);
-    border-radius: 14px;
-    padding: 32px 28px;
-    text-align: center;
-  }
-  .overall-title{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 16px;
-  }
-  .overall-rank{
-    font-family:'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: clamp(40px, 9vw, 60px);
-    color: var(--parchment);
-    line-height: 1;
-  }
-  .overall-rank-label{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: rgba(242,234,220,0.5);
-    margin-top: 8px;
-    margin-bottom: 20px;
-  }
-  .overall-verdict{
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 700;
-    font-size: 26px;
-    color: var(--crimson-bright);
-    margin-bottom: 8px;
-  }
-  .overall-verdict-text{
-    font-size: 14.5px;
-    color: rgba(242,234,220,0.75);
-    line-height: 1.6;
-    max-width: 420px;
-    margin: 0 auto;
-  }
-  .overall-footnote{
-    font-size: 11.5px;
-    color: rgba(242,234,220,0.4);
-    line-height: 1.5;
-    max-width: 420px;
-    margin: 14px auto 0;
-    padding-top: 14px;
-    border-top: 1px solid rgba(242,234,220,0.12);
-  }
-
-  .profile-card{
-    margin-top: 14px;
-    background: var(--parchment);
-    border: 1px solid var(--gold);
-    box-shadow: 0 0 0 1px rgba(201,162,39,0.18), 0 8px 24px rgba(0,0,0,0.35);
-    border-radius: 10px;
-    padding: 24px 22px;
-    color: #2A2118;
-  }
-  .profile-title{
-    font-family:'Cormorant Garamond', serif;
-    font-weight: 700;
-    font-size: 19px;
-    margin-bottom: 18px;
-  }
+  .partner-row .pname{ font-size: 14px; font-weight: 500; }
+  .partner-row .prank{ font-family:'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--crimson); white-space: nowrap; }
+  .combined-note{ font-size: 11.5px; color: var(--teal); padding-top: 8px; line-height: 1.5; }
+  .overall-card{ margin-top: 10px; background: linear-gradient(180deg, var(--ink-2), rgba(22,22,28,0.7)); border: 1px solid var(--gold); box-shadow: 0 0 0 1px rgba(201,162,39,0.25), 0 10px 30px rgba(0,0,0,0.45); border-radius: 14px; padding: 32px 28px; text-align: center; }
+  .overall-title{ font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+  .overall-rank{ font-family:'JetBrains Mono', monospace; font-weight: 700; font-size: clamp(40px, 9vw, 60px); color: var(--parchment); line-height: 1; }
+  .overall-rank-label{ font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.05em; color: rgba(242,234,220,0.5); margin-top: 8px; margin-bottom: 20px; }
+  .overall-verdict{ font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 26px; color: var(--crimson-bright); margin-bottom: 8px; }
+  .overall-verdict-text{ font-size: 14.5px; color: rgba(242,234,220,0.75); line-height: 1.6; max-width: 420px; margin: 0 auto; }
+  .overall-footnote{ font-size: 11.5px; color: rgba(242,234,220,0.4); line-height: 1.5; max-width: 420px; margin: 14px auto 0; padding-top: 14px; border-top: 1px solid rgba(242,234,220,0.12); }
+  .profile-card{ margin-top: 14px; background: var(--parchment); border: 1px solid var(--gold); box-shadow: 0 0 0 1px rgba(201,162,39,0.18), 0 8px 24px rgba(0,0,0,0.35); border-radius: 10px; padding: 24px 22px; color: #2A2118; }
+  .profile-title{ font-family:'Cormorant Garamond', serif; font-weight: 700; font-size: 19px; margin-bottom: 18px; }
   .profile-section{ margin-bottom: 18px; }
   .profile-section:last-child{ margin-bottom: 0; }
-  .profile-label{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--teal);
-    margin-bottom: 10px;
-  }
-  .profile-avg{
-    text-transform: none;
-    letter-spacing: 0;
-    color: var(--crimson);
-    font-weight: 700;
-  }
-  .profile-note{
-    font-size: 13px;
-    color: #5C4F3D;
-    line-height: 1.5;
-    margin-top: 10px;
-  }
-  .bar-chart{
-    display:flex;
-    align-items: flex-end;
-    gap: 10px;
-    height: 120px;
-    padding-top: 6px;
-  }
-  .bar-col{
-    flex: 1;
-    display:flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-  }
-  .bar-track{
-    flex: 1;
-    width: 100%;
-    max-width: 38px;
-    display:flex;
-    align-items: flex-end;
-    border-bottom: 1px solid rgba(0,0,0,0.15);
-  }
-  .bar-fill{
-    width: 100%;
-    border-radius: 4px 4px 0 0;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
-    transition: height 0.4s ease;
-  }
-  .curve-fill{
-    background: var(--crimson);
-  }
-  .bar-count{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    color: #2A2118;
-    margin-top: 6px;
-  }
-  .bar-label{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    color: #5C4F3D;
-    margin-top: 2px;
-  }
-
-  .result-card.error{
-    border-color: rgba(168,51,74,0.5);
-  }
+  .profile-label{ font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); margin-bottom: 10px; }
+  .profile-avg{ text-transform: none; letter-spacing: 0; color: var(--crimson); font-weight: 700; }
+  .bar-chart{ display:flex; align-items: flex-end; gap: 10px; height: 120px; padding-top: 6px; }
+  .bar-col{ flex: 1; display:flex; flex-direction: column; align-items: center; height: 100%; }
+  .bar-track{ flex: 1; width: 100%; max-width: 38px; display:flex; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.15); }
+  .bar-fill{ width: 100%; border-radius: 4px 4px 0 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); transition: height 0.4s ease; }
+  .curve-fill{ background: var(--crimson); }
+  .bar-count{ font-family:'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: #2A2118; margin-top: 6px; }
+  .bar-label{ font-family:'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #5C4F3D; margin-top: 2px; }
+  .result-card.error{ border-color: rgba(168,51,74,0.5); }
   .result-card.error .result-top{ align-items: flex-start; }
-  .error-msg{
-    font-size: 13px;
-    color: #7A3030;
-    margin-top: 6px;
-    line-height: 1.5;
-  }
+  .error-msg{ font-size: 13px; color: #7A3030; margin-top: 6px; line-height: 1.5; }
   .error-msg a{ color: var(--crimson); text-decoration: underline; }
-
-  .result-card.loading .result-top{
-    opacity: 0.6;
-  }
-  .spinner{
-    width:16px; height:16px;
-    border: 2px solid rgba(42,33,24,0.2);
-    border-top-color: var(--crimson);
-    border-radius:50%;
-    animation: spin 0.7s linear infinite;
-    flex-shrink:0;
-  }
+  .result-card.loading .result-top{ opacity: 0.6; }
+  .spinner{ width:16px; height:16px; border: 2px solid rgba(42,33,24,0.2); border-top-color: var(--crimson); border-radius:50%; animation: spin 0.7s linear infinite; flex-shrink:0; }
   @keyframes spin{ to{ transform: rotate(360deg); } }
-
-  .empty-state{
-    text-align:center;
-    padding: 40px 20px;
-    color: rgba(242,234,220,0.4);
-    font-size: 14px;
-  }
-
-  footer{
-    text-align:center;
-    margin-top: 56px;
-    font-size: 12px;
-    color: rgba(242,234,220,0.3);
-    line-height: 1.7;
-  }
+  .empty-state{ text-align:center; padding: 40px 20px; color: rgba(242,234,220,0.4); font-size: 14px; }
+  footer{ text-align:center; margin-top: 56px; font-size: 12px; color: rgba(242,234,220,0.3); line-height: 1.7; }
   footer a{ color: rgba(242,234,220,0.45); }
-
   @media (max-width: 480px){
     .slot-num-spacer{ visibility: hidden; }
-    .partner-toggle{
-      padding: 10px 9px;
-      font-size: 10px;
-    }
+    .partner-toggle{ padding: 10px 9px; font-size: 10px; }
     .result-top{ flex-direction: column; align-items: flex-start; }
     .rank-tag{ align-self: flex-start; }
   }
 </style>
 </head>
 <body>
-
 <div class="wrap">
-
   <header class="reveal">
     <p class="eyebrow">EDHREC · Commander Lookup</p>
     <h1>EDH Hipster <em>Quotient</em></h1>
     <p class="sub">Type in your commanders. Find out whether you're a trailblazer or just playing whatever's rank #4 this week — pulled live from EDHREC's own Top Commanders list, partners included.</p>
   </header>
-
   <div class="panel reveal" style="animation-delay: 0.1s">
     <span class="panel-label">Your commanders</span>
     <div class="slot-list" id="slotList"></div>
@@ -683,876 +158,426 @@
       <button class="check-btn" id="checkBtn" type="button">Check ranks</button>
     </div>
   </div>
-
   <div id="results"></div>
-
   <footer>
     Rank pulled live from EDHREC's own Top Commanders list (all-time popularity).<br>
     Not affiliated with EDHREC or Wizards of the Coast.
   </footer>
-
 </div>
-
 <script>
 (function(){
-  const slotList = document.getElementById('slotList');
-  const addSlotBtn = document.getElementById('addSlot');
-  const resetBtn = document.getElementById('resetBtn');
-  const checkBtn = document.getElementById('checkBtn');
-  const resultsEl = document.getElementById('results');
-
-  let slotId = 0;
-
-  // ---- Local persistence ----
-  // Saves just the raw input values (commander name + partner name, if any)
-  // for every slot, so a page refresh doesn't wipe out what the user typed.
-  // Deliberately doesn't cache rank/color results — those go stale and are
-  // cheap to re-fetch; only the user's own typed input is worth keeping.
-  const STORAGE_KEY = 'edh-hipster-quotient:slots';
+  const slotList=document.getElementById('slotList');
+  const addSlotBtn=document.getElementById('addSlot');
+  const resetBtn=document.getElementById('resetBtn');
+  const checkBtn=document.getElementById('checkBtn');
+  const resultsEl=document.getElementById('results');
+  let slotId=0;
+  const STORAGE_KEY='edh-hipster-quotient:slots';
 
   function saveSlotsToStorage(){
-    try {
-      const rows = [...slotList.children];
-      const data = rows.map(row => {
-        const partnerRowVisible = row.querySelector('.slot-partner-row').style.display !== 'none';
-        return {
-          primary: row.querySelector('.cmd-input').value,
-          partner: partnerRowVisible ? row.querySelector('.partner-input').value : '',
-          hasPartner: partnerRowVisible,
-        };
+    try{
+      const rows=[...slotList.children];
+      const data=rows.map(row=>{
+        const pv=row.querySelector('.slot-partner-row').style.display!=='none';
+        return{primary:row.querySelector('.cmd-input').value,partner:pv?row.querySelector('.partner-input').value:'',hasPartner:pv};
       });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      // localStorage can throw in private-browsing modes or when full —
-      // caching is a nice-to-have, so just skip saving rather than break the app
-    }
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+    }catch{}
   }
 
   function loadSlotsFromStorage(){
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      const data = JSON.parse(raw);
-      if (!Array.isArray(data) || data.length === 0) return null;
+    try{
+      const raw=localStorage.getItem(STORAGE_KEY);
+      if(!raw)return null;
+      const data=JSON.parse(raw);
+      if(!Array.isArray(data)||data.length===0)return null;
       return data;
-    } catch {
-      return null;
-    }
+    }catch{return null;}
   }
 
-  function clearSlotsStorage(){
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* nothing to do */ }
-  }
+  function clearSlotsStorage(){try{localStorage.removeItem(STORAGE_KEY);}catch{}}
 
-  function createSlot(hasPartner, initial){
-    const id = slotId++;
-    const row = document.createElement('div');
-    row.className = 'slot';
-    row.dataset.id = id;
-    row.innerHTML = `
+  function escapeHTML(str){const d=document.createElement('div');d.textContent=str;return d.innerHTML;}
+
+  function createSlot(hasPartner,initial){
+    const id=slotId++;
+    const row=document.createElement('div');
+    row.className='slot';
+    row.dataset.id=id;
+    row.innerHTML=`
       <div class="slot-main">
         <span class="slot-num"></span>
         <div class="field">
-          <input type="text" class="cmd-input" placeholder="Commander name…" autocomplete="off" value="${escapeHTML(initial?.primary || '')}">
+          <input type="text" class="cmd-input" placeholder="Commander name\u2026" autocomplete="off" value="${escapeHTML(initial?.primary||'')}">
           <div class="autocomplete-list"></div>
         </div>
-        <button type="button" class="partner-toggle ${hasPartner ? 'active' : ''}">${hasPartner ? '− Partner' : '+ Partner'}</button>
-        <button type="button" class="remove-slot" aria-label="Remove commander slot">×</button>
+        <button type="button" class="partner-toggle ${hasPartner?'active':''}">${hasPartner?'\u2212 Partner':'+ Partner'}</button>
+        <button type="button" class="remove-slot" aria-label="Remove commander slot">\xd7</button>
       </div>
-      <div class="slot-partner-row" style="display:${hasPartner ? 'flex' : 'none'}">
+      <div class="slot-partner-row" style="display:${hasPartner?'flex':'none'}">
         <span class="slot-num slot-num-spacer" aria-hidden="true">+</span>
         <div class="field">
-          <input type="text" class="partner-input" placeholder="Partner name…" autocomplete="off" value="${escapeHTML(initial?.partner || '')}">
+          <input type="text" class="partner-input" placeholder="Partner name\u2026" autocomplete="off" value="${escapeHTML(initial?.partner||'')}">
           <div class="autocomplete-list"></div>
         </div>
-      </div>
-    `;
+      </div>`;
     slotList.appendChild(row);
     renumber();
-
-    const cmdInput = row.querySelector('.cmd-input');
-    const partnerInput = row.querySelector('.partner-input');
+    const cmdInput=row.querySelector('.cmd-input');
+    const partnerInput=row.querySelector('.partner-input');
     wireAutocomplete(cmdInput);
     wireAutocomplete(partnerInput);
-    cmdInput.addEventListener('input', saveSlotsToStorage);
-    partnerInput.addEventListener('input', saveSlotsToStorage);
-
-    const partnerRow = row.querySelector('.slot-partner-row');
-    const partnerToggle = row.querySelector('.partner-toggle');
-    const partnerDropdown = partnerInput.nextElementSibling;
-    partnerToggle.addEventListener('click', () => {
-      const showing = partnerRow.style.display !== 'none';
-      partnerRow.style.display = showing ? 'none' : 'flex';
-      partnerToggle.textContent = showing ? '+ Partner' : '− Partner';
-      partnerToggle.classList.toggle('active', !showing);
-      if (showing) {
-        partnerInput.value = '';
-        partnerDropdown.classList.remove('open');
-      } else {
-        partnerInput.focus();
-      }
+    cmdInput.addEventListener('input',saveSlotsToStorage);
+    partnerInput.addEventListener('input',saveSlotsToStorage);
+    const partnerRow=row.querySelector('.slot-partner-row');
+    const partnerToggle=row.querySelector('.partner-toggle');
+    const partnerDropdown=partnerInput.nextElementSibling;
+    partnerToggle.addEventListener('click',()=>{
+      const showing=partnerRow.style.display!=='none';
+      partnerRow.style.display=showing?'none':'flex';
+      partnerToggle.textContent=showing?'+ Partner':'\u2212 Partner';
+      partnerToggle.classList.toggle('active',!showing);
+      if(showing){partnerInput.value='';partnerDropdown.classList.remove('open');}
+      else partnerInput.focus();
       saveSlotsToStorage();
     });
-
-    row.querySelector('.remove-slot').addEventListener('click', () => {
-      row.remove();
-      renumber();
-      saveSlotsToStorage();
-    });
-
+    row.querySelector('.remove-slot').addEventListener('click',()=>{row.remove();renumber();saveSlotsToStorage();});
     return row;
   }
 
-  function renumber(){
-    [...slotList.children].forEach((row, i) => {
-      row.querySelector('.slot-num').textContent = i + 1;
-    });
-  }
+  function renumber(){[...slotList.children].forEach((row,i)=>{row.querySelector('.slot-num').textContent=i+1;});}
 
-  // ---- Name autocomplete (Scryfall) ----
-  // /cards/autocomplete is the natural choice for "suggest as you type" UI, but
-  // it has no way to filter by is:commander — it only takes a bare name fragment.
-  // So instead this uses /cards/search with an is:commander filter, which
-  // restricts results to cards that can actually lead a Commander deck
-  // (creatures, Backgrounds, Doctor's companions, etc) and trims the response
-  // down to just the names the dropdown needs.
-  const autocompleteCache = new Map(); // query -> string[]
-
+  const autocompleteCache=new Map();
   async function fetchAutocomplete(query){
-    if (autocompleteCache.has(query)) return autocompleteCache.get(query);
-    // f:edh would exclude previewed-but-not-yet-released commanders, since
-    // Scryfall can't mark a printing "legal" in any format until it's
-    // actually released. This achieves the same practical goal — excluding
-    // joke-set cards and anything banned in Commander — without that gap.
-    const q = `is:commander -border:silver -stamp:acorn -banned:edh ${query}`;
-    const url = `https://api.scryfall.com/cards/search?order=edhrec&q=${encodeURIComponent(q)}`;
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    if (res.status === 404) {
-      // Scryfall returns 404 for zero matches, not an empty list
-      autocompleteCache.set(query, []);
-      return [];
+    if(autocompleteCache.has(query))return autocompleteCache.get(query);
+    const q=`is:commander -border:silver -stamp:acorn -banned:edh ${query}`;
+    const url=`https://api.scryfall.com/cards/search?order=edhrec&q=${encodeURIComponent(q)}`;
+    const res=await fetch(url,{headers:{'Accept':'application/json'}});
+    if(res.status===404){autocompleteCache.set(query,[]);return[];}
+    if(!res.ok)return[];
+    const data=await res.json();
+    const cards=Array.isArray(data.data)?data.data:[];
+    const seen=new Set();const names=[];
+    for(const card of cards){
+      if(!seen.has(card.name)){seen.add(card.name);names.push(card.name);}
+      if(names.length>=20)break;
     }
-    if (!res.ok) return [];
-    const data = await res.json();
-    const cards = Array.isArray(data.data) ? data.data : [];
-    // De-dupe names (multiple printings of the same card share a name) and cap
-    // the list at a reasonable size for a dropdown.
-    const seen = new Set();
-    const names = [];
-    for (const card of cards) {
-      if (!seen.has(card.name)) {
-        seen.add(card.name);
-        names.push(card.name);
-      }
-      if (names.length >= 20) break;
-    }
-    autocompleteCache.set(query, names);
+    autocompleteCache.set(query,names);
     return names;
   }
 
   function wireAutocomplete(input){
-    const dropdown = input.nextElementSibling;
-    let debounceTimer = null;
-    let activeIndex = -1;
-    let currentNames = [];
-
-    function closeDropdown(){
-      dropdown.classList.remove('open');
-      dropdown.innerHTML = '';
-      activeIndex = -1;
-      currentNames = [];
-    }
-
+    const dropdown=input.nextElementSibling;
+    let debounceTimer=null,activeIndex=-1,currentNames=[];
+    function closeDropdown(){dropdown.classList.remove('open');dropdown.innerHTML='';activeIndex=-1;currentNames=[];}
     function renderOptions(names){
-      currentNames = names;
-      activeIndex = -1;
-      if (names.length === 0) {
-        closeDropdown();
-        return;
-      }
-      dropdown.innerHTML = names.map((n, i) =>
-        `<div class="autocomplete-item" data-index="${i}">${escapeHTML(n)}</div>`
-      ).join('');
+      currentNames=names;activeIndex=-1;
+      if(names.length===0){closeDropdown();return;}
+      dropdown.innerHTML=names.map((n,i)=>`<div class="autocomplete-item" data-index="${i}">${escapeHTML(n)}</div>`).join('');
       dropdown.classList.add('open');
-      dropdown.querySelectorAll('.autocomplete-item').forEach(el => {
-        el.addEventListener('mousedown', (e) => {
-          // mousedown (not click) so this fires before the input's blur handler closes the list
-          e.preventDefault();
-          selectOption(parseInt(el.dataset.index, 10));
-        });
+      dropdown.querySelectorAll('.autocomplete-item').forEach(el=>{
+        el.addEventListener('mousedown',e=>{e.preventDefault();selectOption(parseInt(el.dataset.index,10));});
       });
     }
-
     function selectOption(index){
-      if (index < 0 || index >= currentNames.length) return;
-      input.value = currentNames[index];
-      closeDropdown();
-      saveSlotsToStorage(); // setting .value directly doesn't fire a native 'input' event
+      if(index<0||index>=currentNames.length)return;
+      input.value=currentNames[index];closeDropdown();saveSlotsToStorage();
     }
-
     function highlightActive(){
-      dropdown.querySelectorAll('.autocomplete-item').forEach((el, i) => {
-        el.classList.toggle('active-option', i === activeIndex);
-      });
+      dropdown.querySelectorAll('.autocomplete-item').forEach((el,i)=>{el.classList.toggle('active-option',i===activeIndex);});
     }
-
-    input.addEventListener('input', () => {
-      const query = input.value.trim();
-      clearTimeout(debounceTimer);
-      if (query.length < 2) {
-        closeDropdown();
-        return;
-      }
-      debounceTimer = setTimeout(async () => {
-        try {
-          const names = await fetchAutocomplete(query);
-          // Ignore stale responses if the input has changed since this request started
-          if (input.value.trim() === query) renderOptions(names);
-        } catch {
-          closeDropdown();
-        }
-      }, 180);
+    input.addEventListener('input',()=>{
+      const query=input.value.trim();clearTimeout(debounceTimer);
+      if(query.length<2){closeDropdown();return;}
+      debounceTimer=setTimeout(async()=>{
+        try{const names=await fetchAutocomplete(query);if(input.value.trim()===query)renderOptions(names);}
+        catch{closeDropdown();}
+      },180);
     });
-
-    input.addEventListener('keydown', (e) => {
-      if (!dropdown.classList.contains('open')) return;
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        activeIndex = Math.min(activeIndex + 1, currentNames.length - 1);
-        highlightActive();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        activeIndex = Math.max(activeIndex - 1, 0);
-        highlightActive();
-      } else if (e.key === 'Enter') {
-        if (activeIndex >= 0) {
-          e.preventDefault();
-          e.stopPropagation();
-          selectOption(activeIndex);
-        }
-      } else if (e.key === 'Escape') {
-        closeDropdown();
-      }
+    input.addEventListener('keydown',e=>{
+      if(!dropdown.classList.contains('open'))return;
+      if(e.key==='ArrowDown'){e.preventDefault();activeIndex=Math.min(activeIndex+1,currentNames.length-1);highlightActive();}
+      else if(e.key==='ArrowUp'){e.preventDefault();activeIndex=Math.max(activeIndex-1,0);highlightActive();}
+      else if(e.key==='Enter'){if(activeIndex>=0){e.preventDefault();e.stopPropagation();selectOption(activeIndex);}}
+      else if(e.key==='Escape')closeDropdown();
     });
-
-    input.addEventListener('blur', () => {
-      // Slight delay so a mousedown-driven selection (above) can run first
-      setTimeout(closeDropdown, 120);
-    });
+    input.addEventListener('blur',()=>{setTimeout(closeDropdown,120);});
   }
 
-  addSlotBtn.addEventListener('click', () => {
-    createSlot(false);
-    saveSlotsToStorage();
-  });
+  addSlotBtn.addEventListener('click',()=>{createSlot(false);saveSlotsToStorage();});
+  const savedSlots=loadSlotsFromStorage();
+  if(savedSlots){savedSlots.forEach(s=>createSlot(!!s.hasPartner,{primary:s.primary,partner:s.partner}));}
+  else{createSlot(false);createSlot(false);createSlot(false);}
 
-  // Restore from a previous visit if there's anything saved; otherwise start
-  // with 3 empty slots, same as a first-time visitor would see.
-  const savedSlots = loadSlotsFromStorage();
-  if (savedSlots) {
-    savedSlots.forEach(s => createSlot(!!s.hasPartner, { primary: s.primary, partner: s.partner }));
-  } else {
-    createSlot(false);
-    createSlot(false);
-    createSlot(false);
-  }
+  // ====================================================================
+  // PATCH 1: Proxy configuration
+  // EDHREC blocks direct cross-origin requests from GitHub Pages (CORS).
+  // Deploy worker.js to Cloudflare Workers (free), then replace this URL.
+  // ====================================================================
+  const PROXY_BASE='https://YOUR-WORKER.workers.dev';
 
-  // ---- EDHREC per-commander rank lookup ----
-  // Each commander's own page (https://edhrec.com/commanders/{slug}) embeds
-  // a __NEXT_DATA__ <script> tag containing the full page payload, including
-  // pageProps.data.container.json_dict.card.{rank, num_decks, name, ...}.
-  // Fetching that one page directly gives the exact rank for that exact
-  // commander in a single request — no list-scanning, no pagination, and no
-  // dependency on a Next.js build ID (which rotates on every EDHREC deploy
-  // and would otherwise be a recurring source of silent failures). Confirmed
-  // live by inspecting real page output for several commanders across a wide
-  // range of ranks (#86, #296, #971, #1,591, #2,711, etc.) — the shape is
-  // consistent regardless of how popular the commander is.
+  // Returns the real EDHREC URL for a slug (used in error message links only).
+  function edhrecUrlForSlug(slug){return`https://edhrec.com/commanders/${slug}`;}
 
-  const pageCache = new Map(); // slug -> parsed card object (or null if not found)
+  const pageCache=new Map();
 
   function sanitizeForMatch(name){
-    return name
-      .split('//')[0] // double-faced cards (e.g. "Valki // Tibalt") are slugged by front face only
-      .trim()
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
-      // EDHREC's slugs only ever turn *whitespace* (and existing hyphens) into
-      // a "-" separator; every other punctuation mark — apostrophes, commas,
-      // periods, colons (regular or the modifier-letter "꞉" some card names
-      // use), exclamation points, question marks, etc. — is deleted outright,
-      // not replaced with a hyphen. e.g. "Ratonhnhaké:ton" -> "ratonhnhaketon",
-      // not "ratonhnhake-ton".
-      .replace(/[^a-z0-9\s-]+/g, '')
-      .replace(/[\s-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+    return name.split('//')[0].trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s-]+/g,'')
+      .replace(/[\s-]+/g,'-')
+      .replace(/^-+|-+$/g,'');
   }
 
-  // Fetches a commander's page by slug and extracts the embedded card data.
-  // Returns the card object ({ name, rank, num_decks, slots: [...] }) or
-  // null if the page 404s (slug doesn't exist on EDHREC). EDHREC's own page
-  // payload already includes each commander's mana value and color identity
-  // (and, for partner pairs, a `cards` array with each half's own cmc/
-  // color_identity individually) — no need to round-trip to Scryfall for any
-  // of this.
   async function fetchCommanderCard(slug){
-    if (pageCache.has(slug)) return pageCache.get(slug);
-    const url = `https://edhrec.com/commanders/${slug}`;
+    if(pageCache.has(slug))return pageCache.get(slug);
+    // PATCH 2: fetch via proxy instead of edhrec.com directly (CORS fix)
+    const url=`${PROXY_BASE}/commanders/${slug}`;
     let result;
-    // EDHREC's server can be slow (or behave oddly) for slugs that don't
-    // correspond to a real commander — without a timeout, a single bad
-    // lookup (e.g. someone typing "hi" and hitting Check ranks instead of
-    // picking a real suggestion) can hang the whole batch waiting on a
-    // response that may never resolve usefully.
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    try {
-      const res = await fetch(url, { headers: { 'Accept': 'text/html' }, signal: controller.signal });
-      if (res.status === 404) {
-        result = null;
-      } else if (!res.ok) {
-        throw { networkError: true, message: `EDHREC returned an error (${res.status}) while loading that commander.` };
-      } else {
-        const html = await res.text();
-        const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s);
-        if (!match) throw { networkError: true, message: 'Could not read EDHREC\'s page data.' };
-        const parsed = JSON.parse(match[1]);
-        const card = parsed?.props?.pageProps?.data?.container?.json_dict?.card || null;
-        if (!card) {
-          result = null;
-        } else {
-          // card.cards[] serves two different purposes that happen to look
-          // identical: for a partner pair, it lists each of the two distinct
-          // commanders (different ids). For a single transforming/modal DFC
-          // commander, EDHREC *also* lists two entries here — one per face —
-          // but both share the same id, since it's one physical card. Dedupe
-          // by id (keeping the first, which is always the front face) so a
-          // single double-faced commander doesn't get counted twice on the
-          // mana curve.
-          const rawCards = Array.isArray(card.cards) && card.cards.length > 0 ? card.cards : [card];
-          const seenIds = new Set();
-          const slots = rawCards
-            .filter(c => {
-              if (c.id == null) return true; // no id to dedupe on — keep it rather than risk dropping a real card
-              if (seenIds.has(c.id)) return false;
-              seenIds.add(c.id);
-              return true;
-            })
-            .map(c => ({
-              name: c.name,
-              cmc: typeof c.cmc === 'number' ? c.cmc : null,
-              colorIdentity: c.color_identity || [],
-            }));
-          result = {
-            name: card.name,
-            rank: card.rank,
-            num_decks: card.num_decks ?? card.inclusion,
-            sanitized: slug,
-            slots,
-          };
+    const controller=new AbortController();
+    const timeoutId=setTimeout(()=>controller.abort(),10000);
+    try{
+      const res=await fetch(url,{headers:{'Accept':'text/html'},signal:controller.signal});
+      if(res.status===404){result=null;}
+      else if(!res.ok){throw{networkError:true,message:`EDHREC returned an error (${res.status}).`};}
+      else{
+        const html=await res.text();
+        const match=html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s);
+        if(!match)throw{networkError:true,message:"Could not read EDHREC's page data."};
+        const parsed=JSON.parse(match[1]);
+        const card=parsed?.props?.pageProps?.data?.container?.json_dict?.card||null;
+        if(!card){result=null;}
+        else{
+          const rawCards=Array.isArray(card.cards)&&card.cards.length>0?card.cards:[card];
+          const seenIds=new Set();
+          const slots=rawCards
+            .filter(c=>{if(c.id==null)return true;if(seenIds.has(c.id))return false;seenIds.add(c.id);return true;})
+            .map(c=>({name:c.name,cmc:typeof c.cmc==='number'?c.cmc:null,colorIdentity:c.color_identity||[]}));
+          result={name:card.name,rank:card.rank,num_decks:card.num_decks??card.inclusion,sanitized:slug,slots};
         }
       }
-    } catch (err) {
-      if (err && (err.networkError || err.notFound)) throw err;
-      if (err && err.name === 'AbortError') {
-        throw { networkError: true, message: 'EDHREC took too long to respond for that name — double-check the spelling, or try again.' };
-      }
-      throw { networkError: true, message: 'Could not reach EDHREC.' };
-    } finally {
-      clearTimeout(timeoutId);
-    }
-    pageCache.set(slug, result);
+    }catch(err){
+      if(err&&(err.networkError||err.notFound))throw err;
+      if(err&&err.name==='AbortError')throw{networkError:true,message:'EDHREC took too long to respond — check the spelling and try again.'};
+      throw{networkError:true,message:'Could not reach EDHREC.'};
+    }finally{clearTimeout(timeoutId);}
+    pageCache.set(slug,result);
     return result;
   }
 
-  // Politeness throttle so checking several commanders in the same batch
-  // doesn't hammer EDHREC with simultaneous requests.
-  let requestQueue = Promise.resolve();
+  let requestQueue=Promise.resolve();
   function throttle(fn){
-    const run = requestQueue.then(fn);
-    requestQueue = run.then(() => new Promise(r => setTimeout(r, 60)), () => new Promise(r => setTimeout(r, 60)));
+    const run=requestQueue.then(fn);
+    requestQueue=run.then(()=>new Promise(r=>setTimeout(r,60)),()=>new Promise(r=>setTimeout(r,60)));
     return run;
   }
 
-  // Looks up a single commander by name. Returns the matching card object, or throws { notFound: true }.
   async function lookupCommander(name){
-    const slug = sanitizeForMatch(name);
-    const card = await throttle(() => fetchCommanderCard(slug));
-    if (!card) {
-      throw { notFound: true, message: 'Not found on EDHREC.' };
-    }
+    const slug=sanitizeForMatch(name);
+    const card=await throttle(()=>fetchCommanderCard(slug));
+    if(!card)throw{notFound:true,message:'Not found on EDHREC.'};
     return card;
   }
 
-  // Looks up a partner pair as a single combined entry (EDHREC ranks partner
-  // pairs together under a combined slug, e.g.
-  // "thrasios-triton-hero-tymna-the-weaver"). A combined page can only exist
-  // if both halves are real commanders, so check both names individually
-  // first — cheap and parallel — and only attempt the combined-slug fetch
-  // (2 more sequential requests, trying both name orders) if both resolved.
-  // This means a pair involving a typo'd/fake name fails fast off of just
-  // the individual lookups, instead of also burning two more fetches first
-  // trying combined-slug variants that could never have existed anyway.
-  async function lookupPartnerPair(nameA, nameB){
-    const [resA, resB] = await Promise.all([
-      lookupCommander(nameA).then(cv => ({ cv })).catch(err => ({ error: err })),
-      lookupCommander(nameB).then(cv => ({ cv })).catch(err => ({ error: err })),
+  async function lookupPartnerPair(nameA,nameB){
+    const[resA,resB]=await Promise.all([
+      lookupCommander(nameA).then(cv=>({cv})).catch(err=>({error:err})),
+      lookupCommander(nameB).then(cv=>({cv})).catch(err=>({error:err})),
     ]);
-
-    if (resA.error || resB.error) {
-      return { separate: [resA, resB] };
-    }
-
-    const slugA = sanitizeForMatch(nameA);
-    const slugB = sanitizeForMatch(nameB);
-    const combinedSlug = `${slugA}-${slugB}`;
-    const combinedSlugReversed = `${slugB}-${slugA}`;
-
-    const combined = await throttle(async () => {
-      const first = await fetchCommanderCard(combinedSlug);
-      if (first) return first;
+    if(resA.error||resB.error)return{separate:[resA,resB]};
+    const slugA=sanitizeForMatch(nameA),slugB=sanitizeForMatch(nameB);
+    const combinedSlug=`${slugA}-${slugB}`,combinedSlugReversed=`${slugB}-${slugA}`;
+    const combined=await throttle(async()=>{
+      const first=await fetchCommanderCard(combinedSlug);
+      if(first)return first;
       return fetchCommanderCard(combinedSlugReversed);
     });
-    if (combined) {
-      // The combined page's own `name` field formatting isn't guaranteed
-      // (e.g. it may read "A & B" rather than two separate names), so use
-      // the names exactly as entered rather than trusting that field.
-      return { combined: { ...combined, names: [nameA, nameB] } };
-    }
-
-    // Both halves are real commanders, but EDHREC has no combined page for
-    // this specific pairing — show each half with its own individual rank.
-    return { separate: [resA, resB] };
+    if(combined)return{combined:{...combined,names:[nameA,nameB]}};
+    return{separate:[resA,resB]};
   }
 
-  // ---- "Choose a color" commanders ----
-  // A small number of commanders print with no printed color identity at
-  // all (color_identity: [] on both Scryfall and EDHREC) because their color
-  // is chosen by the player at the start of the game, e.g. Clara Oswald,
-  // Faceless One, The Prismatic Piper. EDHREC's own data can't tell us which
-  // color was picked — that's a runtime choice, never recorded anywhere —
-  // so for the color-identity chart specifically, ask the user which color
-  // they're using whenever one of these is entered. This list is exact-name
-  // based and deliberately small/hardcoded, since there's no field anywhere
-  // that would let us detect this case generically.
-  //
-  // Deliberately not cached/persisted anywhere (not even within a single
-  // check run): the same player could run the same "choose a color"
-  // commander as a different color in a different game, so each lookup
-  // asks fresh rather than assuming a prior answer still applies.
-  const CHOOSE_A_COLOR_COMMANDERS = new Set([
-    'clara oswald',
-    'faceless one',
-    'the prismatic piper',
-  ]);
+  const CHOOSE_A_COLOR_COMMANDERS=new Set(['clara oswald','faceless one','the prismatic piper']);
+  const COLOR_NAMES={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+  const WUBRG_ORDER=['W','U','B','R','G'];
 
-  const COLOR_NAMES = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Green' };
-
-  // Shows a small inline prompt asking which color a "choose a color"
-  // commander is being used as, and resolves to the chosen letter (W/U/B/R/G).
-  // contextLabel identifies which deck slot this is for (e.g. "Slot 2"), so
-  // the prompt is unambiguous when the same commander appears more than once.
-  function promptForColor(commanderName, contextLabel){
-    return new Promise(resolve => {
-      const overlay = document.createElement('div');
-      overlay.className = 'color-prompt-overlay';
-      overlay.innerHTML = `
+  function promptForColor(commanderName,contextLabel){
+    return new Promise(resolve=>{
+      const overlay=document.createElement('div');
+      overlay.className='color-prompt-overlay';
+      overlay.innerHTML=`
         <div class="color-prompt-box">
           <div class="color-prompt-title">${escapeHTML(commanderName)} needs a color</div>
-          ${contextLabel ? `<div class="color-prompt-context">${escapeHTML(contextLabel)}</div>` : ''}
-          <div class="color-prompt-sub">This commander's color is chosen at the start of the game, so EDHREC's data doesn't include it. Pick the color you're using so the chart below is accurate.</div>
+          ${contextLabel?`<div class="color-prompt-context">${escapeHTML(contextLabel)}</div>`:''}
+          <div class="color-prompt-sub">This commander's color is chosen at game start, so EDHREC's data doesn't include it. Pick the color you're using.</div>
           <div class="color-prompt-buttons">
-            ${WUBRG_ORDER.map(c => `<button type="button" class="color-prompt-btn color-${c}" data-color="${c}">${COLOR_NAMES[c]}</button>`).join('')}
+            ${WUBRG_ORDER.map(c=>`<button type="button" class="color-prompt-btn color-${c}" data-color="${c}">${COLOR_NAMES[c]}</button>`).join('')}
           </div>
-        </div>
-      `;
+        </div>`;
       document.body.appendChild(overlay);
-      overlay.querySelectorAll('.color-prompt-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          overlay.remove();
-          resolve(btn.dataset.color);
-        });
+      overlay.querySelectorAll('.color-prompt-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{overlay.remove();resolve(btn.dataset.color);});
       });
     });
   }
 
-  // Given a card's resolved slots (from fetchCommanderCard), checks whether
-  // any slot is a known "choose a color" commander and, if so, prompts for
-  // the color to use for it. Returns a new slots array with colorIdentity
-  // filled in where applicable; never mutates the input. contextLabel is
-  // shown in the prompt to disambiguate which deck slot is being asked about.
-  async function resolveChosenColorSlots(slots, contextLabel){
-    const resolved = [];
-    for (const slot of slots) {
-      const key = (slot.name || '').toLowerCase().trim();
-      if (CHOOSE_A_COLOR_COMMANDERS.has(key) && (slot.colorIdentity || []).length === 0) {
-        const color = await promptForColor(slot.name, contextLabel);
-        resolved.push({ ...slot, colorIdentity: [color] });
-      } else {
-        resolved.push(slot);
-      }
+  async function resolveChosenColorSlots(slots,contextLabel){
+    const resolved=[];
+    for(const slot of slots){
+      const key=(slot.name||'').toLowerCase().trim();
+      if(CHOOSE_A_COLOR_COMMANDERS.has(key)&&(slot.colorIdentity||[]).length===0){
+        const color=await promptForColor(slot.name,contextLabel);
+        resolved.push({...slot,colorIdentity:[color]});
+      }else resolved.push(slot);
     }
     return resolved;
   }
 
-  // ---- Color identity & mana value ----
-  // No external lookup needed: EDHREC's own page payload already carries each
-  // commander's mana value and color identity (fetchCommanderCard above pulls
-  // these into a `slots` array on every result), so the profile below just
-  // aggregates whatever slots were collected while resolving ranks.
-  const WUBRG_ORDER = ['W', 'U', 'B', 'R', 'G'];
-
-  function median(numbers){
-    const sorted = [...numbers].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 !== 0 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
-  }
-
-  function mean(numbers){
-    return numbers.reduce((a, b) => a + b, 0) / numbers.length;
-  }
-
-  // The headline number: mostly median (robust to one outlier blowing up a
-  // mean), but with a touch of the mean mixed in so an outlier still leaves
-  // a visible mark instead of vanishing completely. 4:1 median:mean weighting.
-  function hipsterQuotient(numbers){
-    return Math.round((median(numbers) * 4 + mean(numbers)) / 5);
-  }
-
+  function median(n){const s=[...n].sort((a,b)=>a-b),m=Math.floor(s.length/2);return s.length%2!==0?s[m]:Math.round((s[m-1]+s[m])/2);}
+  function mean(n){return n.reduce((a,b)=>a+b,0)/n.length;}
+  function hipsterQuotient(n){return Math.round((median(n)*4+mean(n))/5);}
   function overallVerdict(score){
-    if (score <= 50) return { title: 'Certified Mainstream', text: 'Every table has seen these. You play the hits.' };
-    if (score <= 250) return { title: 'Well-Adjusted Player', text: "Reasonable choices. You'll fit right in at most tables." };
-    if (score <= 750) return { title: 'Slightly Crunchy', text: 'A few cards your playgroup will need explained.' };
-    if (score <= 2000) return { title: 'Genuinely Niche', text: "You've clearly spent time digging on Scryfall." };
-    return { title: 'Insufferable Hipster', text: "Congratulations. Nobody at the table will have heard of half these." };
+    if(score<=50)return{title:'Certified Mainstream',text:'Every table has seen these. You play the hits.'};
+    if(score<=250)return{title:'Well-Adjusted Player',text:"Reasonable choices. You'll fit right in at most tables."};
+    if(score<=750)return{title:'Slightly Crunchy',text:'A few cards your playgroup will need explained.'};
+    if(score<=2000)return{title:'Genuinely Niche',text:"You've clearly spent time digging on Scryfall."};
+    return{title:'Insufferable Hipster',text:"Congratulations. Nobody at the table will have heard of half these."};
   }
 
-  function renderOverallQuotient(resolvedRanks, unresolvedCount){
-    const summaryEl = document.createElement('div');
-    summaryEl.className = 'overall-card reveal';
+  function rankBadgeHTML(rank){
+    if(rank==null)return`<div class="rank-tag" style="background:#3a3026;"><span class="num" style="color:#b8a888;font-size:14px;">N/A</span><span class="label">unranked</span></div>`;
+    return`<div class="rank-tag"><span class="num">#${rank.toLocaleString()}</span><span class="label">EDHREC rank</span></div>`;
+  }
 
-    if (resolvedRanks.length === 0) {
-      summaryEl.innerHTML = `
-        <div class="overall-title">EDH Hipster Quotient</div>
-        <div class="overall-verdict-text">Every single commander checked came back unranked or unresolved — which is either an extraordinary collection of deep cuts, or an extraordinary number of typos.</div>
-      `;
-      resultsEl.appendChild(summaryEl);
-      return;
+  function renderLoading(container,label){
+    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(label)}</div><div class="result-meta">scanning the rankings\u2026</div></div><div class="spinner"></div></div>`;
+    container.className='result-card loading';
+  }
+
+  function renderSingleResult(container,cv){
+    container.className='result-card';
+    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(cv.name)}</div><div class="result-meta">${cv.num_decks?cv.num_decks.toLocaleString()+' decks':''}</div></div>${rankBadgeHTML(cv.rank)}</div>`;
+  }
+
+  function renderCombinedPartnerResult(container,cv){
+    container.className='result-card partnered';
+    const names=cv.names&&cv.names.length===2?cv.names:[cv.name];
+    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(names[0])} <span class="partner-link">+ ${escapeHTML(names[1]||'')}</span></div><div class="result-meta">${cv.num_decks?cv.num_decks.toLocaleString()+' decks':''}</div></div>${rankBadgeHTML(cv.rank)}</div>`;
+  }
+
+  function renderSeparatePartnerResult(container,primaryName,partnerName,results){
+    container.className='result-card partnered';
+    const[a,b]=results;
+    const rowsHTML=results.map((r,idx)=>{
+      const fn=idx===0?primaryName:partnerName;
+      if(r.error)return`<div class="partner-row"><span class="pname">${escapeHTML(fn)}</span><span class="prank" style="color:#7A3030;font-family:'Inter',sans-serif;font-weight:500;font-size:12.5px;">not found</span></div>`;
+      return`<div class="partner-row"><span class="pname">${escapeHTML(r.cv.name)}</span><span class="prank">${r.cv.rank?'#'+r.cv.rank.toLocaleString():'N/A'}</span></div>`;
+    }).join('');
+    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(a.error?primaryName:a.cv.name)} <span class="partner-link">+ ${escapeHTML(b.error?partnerName:b.cv.name)}</span></div><div class="result-meta">ranked separately</div></div></div><div class="partner-rows">${rowsHTML}<div class="combined-note">EDHREC doesn't have a combined entry for this pair, so each half is shown with its own rank.</div></div>`;
+  }
+
+  function renderError(container,name,errInfo){
+    container.className='result-card error';
+    const url=edhrecUrlForSlug(sanitizeForMatch(name));
+    const message=errInfo&&errInfo.notFound?'EDHREC has no page for that name — check the spelling, or pick from the dropdown.':(errInfo&&errInfo.message)||'Something went wrong looking that up.';
+    container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(name)}</div><div class="error-msg">${escapeHTML(message)} <a href="${url}" target="_blank" rel="noopener">look it up on EDHREC \u2192</a></div></div></div>`;
+  }
+
+  function renderOverallQuotient(resolvedRanks,unresolvedCount){
+    const summaryEl=document.createElement('div');
+    summaryEl.className='overall-card reveal';
+    if(resolvedRanks.length===0){
+      summaryEl.innerHTML=`<div class="overall-title">EDH Hipster Quotient</div><div class="overall-verdict-text">Every commander came back unranked or unresolved.</div>`;
+      resultsEl.appendChild(summaryEl);return;
     }
-
-    const score = hipsterQuotient(resolvedRanks);
-    const verdict = overallVerdict(score);
-    const unresolvedNote = unresolvedCount > 0
-      ? `<div class="overall-footnote">${unresolvedCount} commander${unresolvedCount === 1 ? '' : 's'} didn't resolve to a rank and ${unresolvedCount === 1 ? "isn't" : "aren't"} counted in this score — which, if anything, undersells the case.</div>`
-      : '';
-
-    summaryEl.innerHTML = `
-      <div class="overall-title">EDH Hipster Quotient</div>
-      <div class="overall-rank">#${score.toLocaleString()}</div>
-      <div class="overall-rank-label">EDHREC rank score across ${resolvedRanks.length} commander${resolvedRanks.length === 1 ? '' : 's'}</div>
-      <div class="overall-verdict">${escapeHTML(verdict.title)}</div>
-      <div class="overall-verdict-text">${escapeHTML(verdict.text)}</div>
-      ${unresolvedNote}
-    `;
+    const score=hipsterQuotient(resolvedRanks),verdict=overallVerdict(score);
+    const note=unresolvedCount>0?`<div class="overall-footnote">${unresolvedCount} commander${unresolvedCount===1?'':'s'} didn't resolve and ${unresolvedCount===1?"isn't":"aren't"} counted.</div>`:'';
+    summaryEl.innerHTML=`<div class="overall-title">EDH Hipster Quotient</div><div class="overall-rank">#${score.toLocaleString()}</div><div class="overall-rank-label">EDHREC rank score across ${resolvedRanks.length} commander${resolvedRanks.length===1?'':'s'}</div><div class="overall-verdict">${escapeHTML(verdict.title)}</div><div class="overall-verdict-text">${escapeHTML(verdict.text)}</div>${note}`;
     resultsEl.appendChild(summaryEl);
   }
 
   function renderColorAndManaProfile(resolvedDecks){
-    if (resolvedDecks.length === 0) return; // nothing resolved, nothing to show
-
-    // How many decks include each color — counted once per deck, regardless
-    // of how many of that deck's commanders happen to share the color.
-    const colorCounts = {};
-    WUBRG_ORDER.forEach(c => { colorCounts[c] = 0; });
-    resolvedDecks.forEach(d => (d.colorIdentity || []).forEach(c => { if (c in colorCounts) colorCounts[c]++; }));
-    const maxColorCount = Math.max(1, ...Object.values(colorCounts));
-
-    // Mana curve counts every individual commander card (a partner pair
-    // contributes two points on the curve, one per half).
-    const cmcs = resolvedDecks.flatMap(d => d.cmcs);
-    const avgCmc = cmcs.length > 0 ? (cmcs.reduce((a, b) => a + b, 0) / cmcs.length) : null;
-
-    // Mana curve: count of commanders at each mana value, 0 up to the highest seen.
-    const maxCmc = cmcs.length > 0 ? Math.max(...cmcs) : 0;
-    const curveBuckets = Array.from({ length: maxCmc + 1 }, () => 0);
-    cmcs.forEach(v => { curveBuckets[Math.floor(v)]++; });
-    const maxBucketCount = Math.max(1, ...curveBuckets);
-
-
-    const colorFills = { W: '#F8F4E3', U: '#0E68AB', B: '#2A2118', R: '#D3202A', G: '#00733E' };
-
-    const colorBarsHTML = WUBRG_ORDER.map(c => {
-      const count = colorCounts[c];
-      const heightPct = Math.round((count / maxColorCount) * 100);
-      return `
-        <div class="bar-col">
-          <div class="bar-track">
-            <div class="bar-fill" style="height:${count > 0 ? Math.max(heightPct, 6) : 0}%; background:${colorFills[c]};"></div>
-          </div>
-          <div class="bar-count">${count}</div>
-          <div class="bar-label" style="color:${colorFills[c]};">${c}</div>
-        </div>
-      `;
+    if(resolvedDecks.length===0)return;
+    const colorCounts={};
+    WUBRG_ORDER.forEach(c=>{colorCounts[c]=0;});
+    resolvedDecks.forEach(d=>(d.colorIdentity||[]).forEach(c=>{if(c in colorCounts)colorCounts[c]++;}));
+    const maxCC=Math.max(1,...Object.values(colorCounts));
+    const cmcs=resolvedDecks.flatMap(d=>d.cmcs);
+    const avgCmc=cmcs.length>0?(cmcs.reduce((a,b)=>a+b,0)/cmcs.length):null;
+    const maxCmc=cmcs.length>0?Math.max(...cmcs):0;
+    const curveBuckets=Array.from({length:maxCmc+1},()=>0);
+    cmcs.forEach(v=>{curveBuckets[Math.floor(v)]++;});
+    const maxBC=Math.max(1,...curveBuckets);
+    const colorFills={W:'#F8F4E3',U:'#0E68AB',B:'#2A2118',R:'#D3202A',G:'#00733E'};
+    const colorBarsHTML=WUBRG_ORDER.map(c=>{
+      const count=colorCounts[c],h=Math.round((count/maxCC)*100);
+      return`<div class="bar-col"><div class="bar-track"><div class="bar-fill" style="height:${count>0?Math.max(h,6):0}%;background:${colorFills[c]};"></div></div><div class="bar-count">${count}</div><div class="bar-label" style="color:${colorFills[c]};">${c}</div></div>`;
     }).join('');
-
-    const curveBarsHTML = curveBuckets.map((count, cmc) => {
-      const heightPct = Math.round((count / maxBucketCount) * 100);
-      return `
-        <div class="bar-col">
-          <div class="bar-track">
-            <div class="bar-fill curve-fill" style="height:${count > 0 ? Math.max(heightPct, 6) : 0}%;"></div>
-          </div>
-          <div class="bar-count">${count}</div>
-          <div class="bar-label">${cmc}</div>
-        </div>
-      `;
+    const curveBarsHTML=curveBuckets.map((count,cmc)=>{
+      const h=Math.round((count/maxBC)*100);
+      return`<div class="bar-col"><div class="bar-track"><div class="bar-fill curve-fill" style="height:${count>0?Math.max(h,6):0}%;"></div></div><div class="bar-count">${count}</div><div class="bar-label">${cmc}</div></div>`;
     }).join('');
-
-    const profileEl = document.createElement('div');
-    profileEl.className = 'profile-card reveal';
-    profileEl.innerHTML = `
-      <div class="profile-title">Color & Mana Profile</div>
-      <div class="profile-section">
-        <div class="profile-label">Colors across your commanders</div>
-        <div class="bar-chart">${colorBarsHTML}</div>
-      </div>
-      <div class="profile-section">
-        <div class="profile-label">Mana curve${avgCmc !== null ? ` <span class="profile-avg">· avg ${avgCmc.toFixed(1)}</span>` : ''}</div>
-        <div class="bar-chart">${curveBarsHTML}</div>
-      </div>
-    `;
+    const profileEl=document.createElement('div');
+    profileEl.className='profile-card reveal';
+    profileEl.innerHTML=`<div class="profile-title">Color & Mana Profile</div><div class="profile-section"><div class="profile-label">Colors across your commanders</div><div class="bar-chart">${colorBarsHTML}</div></div><div class="profile-section"><div class="profile-label">Mana curve${avgCmc!==null?` <span class="profile-avg">\u00b7 avg ${avgCmc.toFixed(1)}</span>`:''}</div><div class="bar-chart">${curveBarsHTML}</div></div>`;
     resultsEl.appendChild(profileEl);
   }
 
-  function rankBadgeHTML(rank){
-    if (rank === null || rank === undefined) {
-      return `<div class="rank-tag" style="background:#3a3026;"><span class="num" style="color:#b8a888; font-size:14px;">N/A</span><span class="label">unranked</span></div>`;
-    }
-    return `<div class="rank-tag"><span class="num">#${rank.toLocaleString()}</span><span class="label">EDHREC rank</span></div>`;
-  }
-
-  function renderLoading(container, label){
-    container.innerHTML = `
-      <div class="result-top">
-        <div>
-          <div class="result-name">${escapeHTML(label)}</div>
-          <div class="result-meta">scanning the rankings…</div>
-        </div>
-        <div class="spinner"></div>
-      </div>
-    `;
-    container.className = 'result-card loading';
-  }
-
-  function escapeHTML(str){
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-  }
-
-  function renderSingleResult(container, cardview){
-    container.className = 'result-card';
-    container.innerHTML = `
-      <div class="result-top">
-        <div>
-          <div class="result-name">${escapeHTML(cardview.name)}</div>
-          <div class="result-meta">${cardview.num_decks ? cardview.num_decks.toLocaleString() + ' decks' : ''}</div>
-        </div>
-        ${rankBadgeHTML(cardview.rank)}
-      </div>
-    `;
-  }
-
-  function renderCombinedPartnerResult(container, cardview){
-    container.className = 'result-card partnered';
-    const names = cardview.names && cardview.names.length === 2 ? cardview.names : [cardview.name];
-    container.innerHTML = `
-      <div class="result-top">
-        <div>
-          <div class="result-name">${escapeHTML(names[0])} <span class="partner-link">+ ${escapeHTML(names[1] || '')}</span></div>
-          <div class="result-meta">${cardview.num_decks ? cardview.num_decks.toLocaleString() + ' decks' : ''}</div>
-        </div>
-        ${rankBadgeHTML(cardview.rank)}
-      </div>
-    `;
-  }
-
-  function renderSeparatePartnerResult(container, primaryName, partnerName, results){
-    container.className = 'result-card partnered';
-    const [a, b] = results;
-
-    const rowsHTML = results.map((r, idx) => {
-      const fallbackName = idx === 0 ? primaryName : partnerName;
-      if (r.error) {
-        return `<div class="partner-row">
-          <span class="pname">${escapeHTML(fallbackName)}</span>
-          <span class="prank" style="color:#7A3030; font-family:'Inter',sans-serif; font-weight:500; font-size:12.5px;">not found</span>
-        </div>`;
-      }
-      return `<div class="partner-row">
-        <span class="pname">${escapeHTML(r.cv.name)}</span>
-        <span class="prank">${r.cv.rank ? '#' + r.cv.rank.toLocaleString() : 'N/A'}</span>
-      </div>`;
-    }).join('');
-
-    container.innerHTML = `
-      <div class="result-top">
-        <div>
-          <div class="result-name">${escapeHTML(a.error ? primaryName : a.cv.name)} <span class="partner-link">+ ${escapeHTML(b.error ? partnerName : b.cv.name)}</span></div>
-          <div class="result-meta">ranked separately</div>
-        </div>
-      </div>
-      <div class="partner-rows">
-        ${rowsHTML}
-        <div class="combined-note">EDHREC doesn't have a combined entry for this pair, so each half is shown with its own individual commander rank.</div>
-      </div>
-    `;
-  }
-
-  function renderError(container, name, errInfo){
-    container.className = 'result-card error';
-    const url = edhrecUrlForSlug(sanitizeForMatch(name));
-    const message = errInfo && errInfo.notFound
-      ? `EDHREC has no page for that name — check the spelling, or pick a suggestion from the dropdown next time.`
-      : (errInfo && errInfo.message) || `Something went wrong looking that up.`;
-    container.innerHTML = `
-      <div class="result-top">
-        <div>
-          <div class="result-name">${escapeHTML(name)}</div>
-          <div class="error-msg">
-            ${escapeHTML(message)}
-            <a href="${url}" target="_blank" rel="noopener">look it up on EDHREC directly →</a>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   async function handleCheck(){
-    const rows = [...slotList.children];
-    const entries = rows.map(row => {
-      const primary = row.querySelector('.cmd-input').value.trim();
-      const partnerRowVisible = row.querySelector('.slot-partner-row').style.display !== 'none';
-      const partner = partnerRowVisible ? row.querySelector('.partner-input').value.trim() : '';
-      return { primary, partner };
-    }).filter(e => e.primary.length > 0);
-
-    if (entries.length === 0) {
-      resultsEl.innerHTML = `<div class="empty-state">Type at least one commander name above, then hit "Check ranks."</div>`;
-      return;
-    }
-
-    checkBtn.disabled = true;
-    checkBtn.textContent = 'Checking…';
-    resultsEl.innerHTML = '';
-
-    const containers = entries.map(entry => {
-      const div = document.createElement('div');
-      div.className = 'result-card reveal';
-      const label = entry.partner ? `${entry.primary} + ${entry.partner}` : entry.primary;
-      renderLoading(div, label);
-      resultsEl.appendChild(div);
-      return div;
+    const rows=[...slotList.children];
+    const entries=rows.map(row=>{
+      const primary=row.querySelector('.cmd-input').value.trim();
+      const pv=row.querySelector('.slot-partner-row').style.display!=='none';
+      const partner=pv?row.querySelector('.partner-input').value.trim():'';
+      return{primary,partner};
+    }).filter(e=>e.primary.length>0);
+    if(entries.length===0){resultsEl.innerHTML='<div class="empty-state">Type at least one commander name above, then hit \"Check ranks.\"</div>';return;}
+    checkBtn.disabled=true;checkBtn.textContent='Checking\u2026';resultsEl.innerHTML='';
+    const containers=entries.map(entry=>{
+      const div=document.createElement('div');div.className='result-card reveal';
+      const label=entry.partner?`${entry.primary} + ${entry.partner}`:entry.primary;
+      renderLoading(div,label);resultsEl.appendChild(div);return div;
     });
-
-    // Sequential, not parallel: every lookup walks the same shared page cache,
-    // so running them one at a time avoids duplicate fetches of the same pages
-    // and keeps requests to EDHREC's endpoint orderly.
-    const resolvedRanks = []; // numbers only, one per resolved commander/pair
-    let unresolvedCount = 0;
-    // Mana curve counts every individual commander card (a partner pair has
-    // two real cards on the curve), but color identity is a deck-level
-    // property — a red/red partner pair should only count as "red" once,
-    // not twice — so each entry below is the deck's *unioned* color identity
-    // alongside the per-card cmc list for that same entry.
-    const resolvedDecks = []; // { colorIdentity: string[], cmcs: number[] }
-
-    for (let i = 0; i < entries.length; i++) {
-      const entry = entries[i];
-      const container = containers[i];
-      try {
-        if (entry.partner) {
-          const result = await lookupPartnerPair(entry.primary, entry.partner);
-          if (result.combined) {
-            renderCombinedPartnerResult(container, result.combined);
-            if (result.combined.rank != null) resolvedRanks.push(result.combined.rank);
-            else unresolvedCount++;
-            // The combined page's own slots[] already breaks the pair back out
-            // into each half's individual cmc/colorIdentity.
-            const colorResolvedSlots = await resolveChosenColorSlots(
-              result.combined.slots,
-              `Slot ${i + 1}: paired with ${entry.primary} & ${entry.partner}`
-            );
-            resolvedDecks.push({
-              colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
-              cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
+    const resolvedRanks=[];let unresolvedCount=0;const resolvedDecks=[];
+    for(let i=0;i<entries.length;i++){
+      const entry=entries[i],container=containers[i];
+      try{
+        if(entry.partner){
+          const result=await lookupPartnerPair(entry.primary,entry.partner);
+          if(result.combined){
+            renderCombinedPartnerResult(container,result.combined);
+            if(result.combined.rank!=null)resolvedRanks.push(result.combined.rank);else unresolvedCount++;
+            const crs=await resolveChosenColorSlots(result.combined.slots,`Slot ${i+1}: paired with ${entry.primary} & ${entry.partner}`);
+            resolvedDecks.push({colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)});
+          }else{
+            renderSeparatePartnerResult(container,entry.primary,entry.partner,result.separate);
+            const okSlots=[];
+            result.separate.forEach(r=>{
+              if(!r.error){if(r.cv.rank!=null)resolvedRanks.push(r.cv.rank);else unresolvedCount++;okSlots.push(...r.cv.slots);}
+              else unresolvedCount++;
             });
-          } else {
-            renderSeparatePartnerResult(container, entry.primary, entry.partner, result.separate);
-            const okSlots = [];
-            result.separate.forEach(r => {
-              if (!r.error) {
-                if (r.cv.rank != null) resolvedRanks.push(r.cv.rank); else unresolvedCount++;
-                okSlots.push(...r.cv.slots);
-              } else {
-                unresolvedCount++;
-              }
-            });
-            if (okSlots.length > 0) {
-              const colorResolvedSlots = await resolveChosenColorSlots(
-                okSlots,
-                `Slot ${i + 1}: paired with ${entry.primary} & ${entry.partner}`
-              );
-              resolvedDecks.push({
-                colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
-                cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
-              });
+            if(okSlots.length>0){
+              const crs=await resolveChosenColorSlots(okSlots,`Slot ${i+1}: paired with ${entry.primary} & ${entry.partner}`);
+              resolvedDecks.push({colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)});
             }
           }
-        } else {
-          const cardview = await lookupCommander(entry.primary);
-          renderSingleResult(container, cardview);
-          if (cardview.rank != null) resolvedRanks.push(cardview.rank);
-          else unresolvedCount++;
-          const colorResolvedSlots = await resolveChosenColorSlots(cardview.slots, `Slot ${i + 1}`);
-          resolvedDecks.push({
-            colorIdentity: [...new Set(colorResolvedSlots.flatMap(s => s.colorIdentity || []))],
-            cmcs: colorResolvedSlots.map(s => s.cmc).filter(c => c !== null),
-          });
+        }else{
+          const cardview=await lookupCommander(entry.primary);
+          renderSingleResult(container,cardview);
+          if(cardview.rank!=null)resolvedRanks.push(cardview.rank);else unresolvedCount++;
+          const crs=await resolveChosenColorSlots(cardview.slots,`Slot ${i+1}`);
+          resolvedDecks.push({colorIdentity:[...new Set(crs.flatMap(s=>s.colorIdentity||[]))],cmcs:crs.map(s=>s.cmc).filter(c=>c!==null)});
         }
-      } catch (err) {
-        renderError(container, entry.primary, err);
-        unresolvedCount++;
-      }
+      }catch(err){renderError(container,entry.primary,err);unresolvedCount++;}
     }
-
-    renderOverallQuotient(resolvedRanks, unresolvedCount);
+    renderOverallQuotient(resolvedRanks,unresolvedCount);
     renderColorAndManaProfile(resolvedDecks);
-
-    checkBtn.disabled = false;
-    checkBtn.textContent = 'Check ranks';
+    checkBtn.disabled=false;checkBtn.textContent='Check ranks';
   }
 
-  checkBtn.addEventListener('click', handleCheck);
-
-  resetBtn.addEventListener('click', () => {
-    clearSlotsStorage();
-    slotList.innerHTML = '';
-    resultsEl.innerHTML = '';
-    createSlot(false);
-    createSlot(false);
-    createSlot(false);
-  });
-
-  // Allow Enter key inside any text input to trigger a check
-  slotList.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-      e.preventDefault();
-      handleCheck();
-    }
-  });
+  checkBtn.addEventListener('click',handleCheck);
+  resetBtn.addEventListener('click',()=>{clearSlotsStorage();slotList.innerHTML='';resultsEl.innerHTML='';createSlot(false);createSlot(false);createSlot(false);});
+  slotList.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();handleCheck();}});
 })();
 </script>
-
 </body>
 </html>
