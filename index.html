@@ -314,7 +314,7 @@
   // EDHREC blocks direct cross-origin requests from GitHub Pages (CORS).
   // Deploy worker.js to Cloudflare Workers (free), then replace this URL.
   // ====================================================================
-  const PROXY_BASE='https://edhrec-hipster-quotient.jbruce0226.workers.dev';
+  const PROXY_BASE='https://YOUR-WORKER.workers.dev';
 
   // Returns the real EDHREC URL for a slug (used in error message links only).
   function edhrecUrlForSlug(slug){return`https://edhrec.com/commanders/${slug}`;}
@@ -384,7 +384,11 @@
       lookupCommander(nameA).then(cv=>({cv})).catch(err=>({error:err})),
       lookupCommander(nameB).then(cv=>({cv})).catch(err=>({error:err})),
     ]);
-    if(resA.error||resB.error)return{separate:[resA,resB]};
+    // Always try the combined slug even if one half 404d individually —
+    // Background cards (e.g. Sword Coast Sailor) have no standalone
+    // commander page on EDHREC and will always fail the individual lookup,
+    // but their combined pages (e.g. burakos-party-leader-sword-coast-sailor)
+    // exist and have full rank data.
     const slugA=sanitizeForMatch(nameA),slugB=sanitizeForMatch(nameB);
     const combinedSlug=`${slugA}-${slugB}`,combinedSlugReversed=`${slugB}-${slugA}`;
     const combined=await throttle(async()=>{
@@ -393,6 +397,9 @@
       return fetchCommanderCard(combinedSlugReversed);
     });
     if(combined)return{combined:{...combined,names:[nameA,nameB]}};
+    // Combined slug not found either. If both halves resolved individually,
+    // show them separately. If one failed (e.g. a Background with no solo
+    // page), surface the error for that half.
     return{separate:[resA,resB]};
   }
 
