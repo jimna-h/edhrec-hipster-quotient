@@ -311,9 +311,23 @@
   }
 
   addSlotBtn.addEventListener('click',()=>{createSlot(false);saveSlotsToStorage();});
-  const savedSlots=loadSlotsFromStorage();
+  // Commanders handed over in the link, e.g. from Archidekt Snapshot:
+  //   #c=Commander&c=Partner+One|Partner+Two
+  // Each "c" is one deck; "|" separates a partner pair. They replace the saved slots.
+  function slotsFromLink(){
+    const m=location.hash.match(/^#(.*)$/);if(!m)return null;
+    const decks=new URLSearchParams(m[1]).getAll('c')
+      .map(v=>v.split('|').map(x=>x.trim()).filter(Boolean)).filter(v=>v.length);
+    return decks.length?decks.map(([primary,partner])=>({primary,partner:partner||'',hasPartner:!!partner})):null;
+  }
+  const linkedSlots=slotsFromLink();
+  const savedSlots=linkedSlots||loadSlotsFromStorage();
   if(savedSlots){savedSlots.forEach(s=>createSlot(!!s.hasPartner,{primary:s.primary,partner:s.partner}));}
   else{createSlot(false);createSlot(false);createSlot(false);}
+  if(linkedSlots){
+    saveSlotsToStorage();
+    history.replaceState(null,'',location.pathname+location.search);  // a refresh keeps them, without re-importing
+  }
 
   // ====================================================================
   // PATCH 1: Proxy configuration
@@ -636,6 +650,7 @@
   checkBtn.addEventListener('click',handleCheck);
   resetBtn.addEventListener('click',()=>{clearSlotsStorage();slotList.innerHTML='';resultsEl.innerHTML='';createSlot(false);createSlot(false);createSlot(false);});
   slotList.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();handleCheck();}});
+  if(linkedSlots)handleCheck();
 })();
 </script>
 </body>

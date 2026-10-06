@@ -31,6 +31,11 @@ commander's own page:
    twice (once per face), which is deduped so the mana curve doesn't
    double-count.
 
+Commanders can also be handed over in the link, which fills the slots and checks them right away:
+`#c=Commander&c=Partner+One|Partner+Two` (one `c` per deck, `|` between partners).
+[Archidekt Snapshot](https://jimna-h.github.io/archidekt-snapshot/) uses this to send over every
+commander in your folder.
+
 Requests are throttled (one at a time, out of politeness), cached per slug,
 and wrapped in a 10-second abort timeout so one bad lookup can't hang a batch.
 Entered decks persist across visits via localStorage.
