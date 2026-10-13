@@ -38,14 +38,18 @@ export default {
 
       const body = await upstream.text();
 
-      return new Response(body, {
-        status: upstream.status,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=300',
-          ...corsHeaders(),
-        },
-      });
+      // Only cache real answers (a page, or a definite 404). Caching a 429 or
+      // 5xx would keep serving the error after EDHREC has recovered.
+      const cacheable = upstream.ok || upstream.status === 404;
+      const headers = {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': cacheable ? 'public, max-age=300' : 'no-store',
+        ...corsHeaders(),
+      };
+      const retryAfter = upstream.headers.get('Retry-After');
+      if (retryAfter) headers['Retry-After'] = retryAfter;
+
+      return new Response(body, { status: upstream.status, headers });
     } catch (err) {
       return new Response(`Proxy error: ${err.message}`, {
         status: 502,
@@ -60,5 +64,6 @@ function corsHeaders() {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Accept',
+    'Access-Control-Expose-Headers': 'Retry-After',
   };
 }
