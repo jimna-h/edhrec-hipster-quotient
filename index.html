@@ -115,7 +115,8 @@
   .overall-verdict{ font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 26px; color: var(--crimson-bright); margin-bottom: 8px; }
   .overall-verdict-text{ font-size: 14.5px; color: rgba(242,234,220,0.75); line-height: 1.6; max-width: 420px; margin: 0 auto; }
   .overall-footnote{ font-size: 11.5px; color: rgba(242,234,220,0.4); line-height: 1.5; max-width: 420px; margin: 14px auto 0; padding-top: 14px; border-top: 1px solid rgba(242,234,220,0.12); }
-  .export-btn{ margin-top: 18px; background: transparent; border: 1px solid var(--gold-dim); color: var(--gold); font-family:'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; border-radius: 8px; padding: 9px 16px; cursor:pointer; transition: all 0.15s; }
+  .export-row{ display:flex; justify-content:center; flex-wrap:wrap; gap: 10px; margin-top: 18px; }
+  .export-btn{ background: transparent; border: 1px solid var(--gold-dim); color: var(--gold); font-family:'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.06em; border-radius: 8px; padding: 9px 16px; cursor:pointer; transition: all 0.15s; }
   .export-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
   .export-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset:2px; }
   .profile-card{ margin-top: 14px; background: var(--parchment); border: 1px solid var(--gold); box-shadow: 0 0 0 1px rgba(201,162,39,0.18), 0 8px 24px rgba(0,0,0,0.35); border-radius: 10px; padding: 24px 22px; color: #2A2118; }
@@ -481,10 +482,19 @@
   // ---- Export: one "* Name — rank — N decks" line per checked result ----
   function fmtRank(rank){return rank==null?'N/A':rank.toLocaleString();}
   function fmtDecks(n){return n?`${n.toLocaleString()} deck${n===1?'':'s'}`:'? decks';}
-  function exportText(){
-    return[...resultsEl.querySelectorAll('.result-card[data-export]')]
+  // Each resolved card stores its names and its stats separately, so the
+  // plain and Reddit exports can format the names differently.
+  function setExport(container,names,stats){
+    container.dataset.exportNames=JSON.stringify(names);
+    container.dataset.exportStats=stats;
+  }
+  function exportText(forReddit){
+    return[...resultsEl.querySelectorAll('.result-card[data-export-names]')]
       .filter(c=>{const cb=c.querySelector('.result-check');return!cb||cb.checked;})
-      .map(c=>c.dataset.export).join('\n');
+      .map(c=>{
+        const names=JSON.parse(c.dataset.exportNames).map(n=>forReddit?`[[${n}]]`:n);
+        return`* ${names.join('/')} — ${c.dataset.exportStats}`;
+      }).join('\n');
   }
   async function copyToClipboard(text){
     try{await navigator.clipboard.writeText(text);return true;}
@@ -506,7 +516,7 @@
   function renderSingleResult(container,cv){
     container.className='result-card';
     const url=edhrecUrlForSlug(cv.sanitized||sanitizeForMatch(cv.name));
-    container.dataset.export=`* ${cv.name} — ${fmtRank(cv.rank)} — ${fmtDecks(cv.num_decks)}`;
+    setExport(container,[cv.name],`${fmtRank(cv.rank)} — ${fmtDecks(cv.num_decks)}`);
     container.innerHTML=`<div class="result-top"><div><div class="result-name"><a href="${url}" target="_blank" rel="noopener">${escapeHTML(cv.name)}</a></div><div class="result-meta">${cv.num_decks?cv.num_decks.toLocaleString()+' decks':''}</div></div><div class="result-check-wrap"><input type="checkbox" class="result-check" checked title="Include in stats">${rankBadgeHTML(cv.rank)}</div></div>`;
   }
 
@@ -514,7 +524,7 @@
     container.className='result-card partnered';
     const names=cv.names&&cv.names.length===2?cv.names:[cv.name];
     const url=edhrecUrlForSlug(cv.sanitized||sanitizeForMatch(names[0]));
-    container.dataset.export=`* ${names.join('/')} — ${fmtRank(cv.rank)} — ${fmtDecks(cv.num_decks)}`;
+    setExport(container,names,`${fmtRank(cv.rank)} — ${fmtDecks(cv.num_decks)}`);
     container.innerHTML=`<div class="result-top"><div><div class="result-name"><a href="${url}" target="_blank" rel="noopener">${escapeHTML(names[0])}</a> <span class="partner-link">+ ${escapeHTML(names[1]||'')}</span></div><div class="result-meta">${cv.num_decks?cv.num_decks.toLocaleString()+' decks':''}</div></div><div class="result-check-wrap"><input type="checkbox" class="result-check" checked title="Include in stats">${rankBadgeHTML(cv.rank)}</div></div>`;
   }
 
@@ -531,7 +541,7 @@
     const bName=b.error?partnerName:b.cv.name;
     const halfRank=r=>r.error?'N/A':fmtRank(r.cv.rank);
     const halfDecks=r=>r.error||!r.cv.num_decks?'?':r.cv.num_decks.toLocaleString();
-    if(!(a.error&&b.error))container.dataset.export=`* ${aName}/${bName} — ${halfRank(a)} / ${halfRank(b)} — ${halfDecks(a)} / ${halfDecks(b)} decks`;
+    if(!(a.error&&b.error))setExport(container,[aName,bName],`${halfRank(a)} / ${halfRank(b)} — ${halfDecks(a)} / ${halfDecks(b)} decks`);
     container.innerHTML=`<div class="result-top"><div><div class="result-name">${escapeHTML(aName)} <span class="partner-link">+ ${escapeHTML(bName)}</span></div><div class="result-meta">ranked separately</div></div><input type="checkbox" class="result-check" checked title="Include in stats" style="flex-shrink:0;width:18px;height:18px;accent-color:var(--crimson);cursor:pointer;"></div><div class="partner-rows">${rowsHTML}<div class="combined-note">EDHREC doesn't have a combined entry for this pair, so each half is shown with its own rank.</div></div>`;
   }
 
@@ -551,15 +561,16 @@
     }
     const score=hipsterQuotient(resolvedRanks),verdict=overallVerdict(score);
     const note=unresolvedCount>0?`<div class="overall-footnote">${unresolvedCount} commander${unresolvedCount===1?'':'s'} didn't resolve and ${unresolvedCount===1?"isn't":"aren't"} counted.</div>`:'';
-    summaryEl.innerHTML=`<div class="overall-title">EDH Hipster Quotient</div><div class="overall-rank">#${score.toLocaleString()}</div><div class="overall-rank-label">EDHREC rank score across ${resolvedRanks.length} commander${resolvedRanks.length===1?'':'s'}</div><div class="overall-verdict">${escapeHTML(verdict.title)}</div><div class="overall-verdict-text">${escapeHTML(verdict.text)}</div>${note}<button type="button" class="export-btn">Copy list</button>`;
-    const exportBtn=summaryEl.querySelector('.export-btn');
-    let resetTimer=null;
-    exportBtn.addEventListener('click',async()=>{
-      const text=exportText();
-      const ok=text&&await copyToClipboard(text);
-      exportBtn.textContent=ok?'Copied ✓':(text?'Copy failed':'Nothing to copy');
-      clearTimeout(resetTimer);
-      resetTimer=setTimeout(()=>{exportBtn.textContent='Copy list';},1800);
+    summaryEl.innerHTML=`<div class="overall-title">EDH Hipster Quotient</div><div class="overall-rank">#${score.toLocaleString()}</div><div class="overall-rank-label">EDHREC rank score across ${resolvedRanks.length} commander${resolvedRanks.length===1?'':'s'}</div><div class="overall-verdict">${escapeHTML(verdict.title)}</div><div class="overall-verdict-text">${escapeHTML(verdict.text)}</div>${note}<div class="export-row"><button type="button" class="export-btn" data-format="plain">Copy list</button><button type="button" class="export-btn" data-format="reddit" title="Wraps each commander in [[brackets]] for Reddit's card-fetcher bot">Copy for Reddit</button></div>`;
+    summaryEl.querySelectorAll('.export-btn').forEach(btn=>{
+      const label=btn.textContent;let resetTimer=null;
+      btn.addEventListener('click',async()=>{
+        const text=exportText(btn.dataset.format==='reddit');
+        const ok=text&&await copyToClipboard(text);
+        btn.textContent=ok?'Copied ✓':(text?'Copy failed':'Nothing to copy');
+        clearTimeout(resetTimer);
+        resetTimer=setTimeout(()=>{btn.textContent=label;},1800);
+      });
     });
     resultsEl.appendChild(summaryEl);
   }

@@ -44,6 +44,9 @@ line per deck, ready to paste into Discord or a forum post:
 * Tymna the Weaver/Thrasios, Triton Hero — 287 — 9,621 decks
 ```
 
+**Copy for Reddit** does the same but wraps each commander in `[[double brackets]]`
+so Reddit's card-fetcher bot links them: `* [[Tymna the Weaver]]/[[Thrasios, Triton Hero]] — 287 — 9,621 decks`.
+
 Requests are throttled (one at a time, out of politeness), cached per slug,
 and wrapped in a 10-second abort timeout so one bad lookup can't hang a batch.
 Entered decks persist across visits via localStorage.
