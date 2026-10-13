@@ -36,6 +36,14 @@ Commanders can also be handed over in the link, which fills the slots and checks
 [Archidekt Snapshot](https://jimna-h.github.io/archidekt-snapshot/) uses this to send over every
 commander in your folder.
 
+**Copy list** on the score card copies the checked results to the clipboard, one
+line per deck, ready to paste into Discord or a forum post:
+
+```
+* Atraxa, Praetors' Voice — 1,674 — 1,252 decks
+* Tymna the Weaver/Thrasios, Triton Hero — 287 — 9,621 decks
+```
+
 Requests are throttled (one at a time, out of politeness), cached per slug,
 and wrapped in a 10-second abort timeout so one bad lookup can't hang a batch.
 Entered decks persist across visits via localStorage.
