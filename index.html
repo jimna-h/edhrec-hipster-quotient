@@ -358,10 +358,23 @@
     // PATCH 2: fetch via proxy instead of edhrec.com directly (CORS fix)
     const url=`${PROXY_BASE}/commanders/${slug}`;
     let result;
-    const controller=new AbortController();
-    const timeoutId=setTimeout(()=>controller.abort(),10000);
+    let timeoutId=null;
     try{
-      const res=await fetch(url,{headers:{'Accept':'text/html'},signal:controller.signal});
+      // EDHREC rate-limits (429) when a batch goes too fast. Rather than failing
+      // the rest of the batch, wait and retry, and slow the queue for what's left.
+      let res;
+      for(let attempt=0;;attempt++){
+        const controller=new AbortController();
+        timeoutId=setTimeout(()=>controller.abort(),10000);
+        res=await fetch(url,{headers:{'Accept':'text/html'},signal:controller.signal,cache:attempt?'no-store':'default'});
+        clearTimeout(timeoutId);
+        if(res.status!==429||attempt>=MAX_RETRIES)break;
+        paceMs=Math.min(Math.max(paceMs*2,400),2000);
+        const retryAfter=parseFloat(res.headers.get('Retry-After'));
+        const waitMs=retryAfter>0?Math.min(retryAfter*1000,15000):1000*2**attempt;
+        await new Promise(r=>setTimeout(r,waitMs));
+      }
+      if(res.status===429){throw{networkError:true,message:'EDHREC is rate-limiting lookups right now — wait a minute and check again.'};}
       if(res.status===404){result=null;}
       else if(!res.ok){throw{networkError:true,message:`EDHREC returned an error (${res.status}).`};}
       else{
@@ -389,10 +402,14 @@
     return result;
   }
 
+  // Gap between lookups. Starts quick; a 429 raises it for the rest of the session.
+  let paceMs=60;
+  const MAX_RETRIES=3;
   let requestQueue=Promise.resolve();
   function throttle(fn){
     const run=requestQueue.then(fn);
-    requestQueue=run.then(()=>new Promise(r=>setTimeout(r,60)),()=>new Promise(r=>setTimeout(r,60)));
+    const pause=()=>new Promise(r=>setTimeout(r,paceMs));
+    requestQueue=run.then(pause,pause);
     return run;
   }
 
