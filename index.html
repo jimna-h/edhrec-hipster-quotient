@@ -394,7 +394,8 @@
         // framework payload is missing or its internal shape changes.
         if(!card){
           const title=html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i);
-          const rank=html.match(/(?:#|&num;)?([\d,]+)\s*Rank\b/i);
+          const pageText=html.replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ');
+          const rank=pageText.match(/(?:#|&num;)?\s*([\d,]+)\s*Rank\b/i);
           const name=title?.[1]?.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&#x27;|&#39;/gi,"'").replace(/\s+/g,' ').trim();
           if(name&&rank)card={name,rank:Number(rank[1].replace(/,/g,'')),cards:[]};
         }
