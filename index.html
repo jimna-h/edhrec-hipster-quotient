@@ -462,6 +462,7 @@
     return card;
   }
 
+  const partnerPairCache=new Map();
   async function lookupPartnerPair(nameA,nameB){
     const[resA,resB]=await Promise.all([
       lookupCommander(nameA).then(cv=>({cv})).catch(err=>({error:err})),
@@ -480,16 +481,22 @@
     // individual commander pages are valid. Keep that failure local so the
     // pair can still be shown as two separate lookups.
     let combined=null;
+    const pairKey=[slugA,slugB].sort().join('|');
     try{
-      combined=await throttle(async()=>{
-        for(const slug of [...new Set(pairSlugs)]){
-          const candidate=await fetchCommanderCard(slug);
-          // A page with two component ranks is just reporting the commanders
-          // separately. Prefer the orientation whose page has one combined rank.
-          if(candidate&&candidate.rank!=null&&candidate.componentRanks.length<2)return candidate;
-        }
-        return null;
-      });
+      if(!partnerPairCache.has(pairKey)){
+        const lookup=throttle(async()=>{
+          for(const slug of [...new Set(pairSlugs)]){
+            const candidate=await fetchCommanderCard(slug);
+            // A page with two component ranks is just reporting the commanders
+            // separately. Prefer the orientation whose page has one combined rank.
+            if(candidate&&candidate.rank!=null&&candidate.componentRanks.length<2)return candidate;
+          }
+          return null;
+        });
+        partnerPairCache.set(pairKey,lookup);
+        lookup.catch(()=>partnerPairCache.delete(pairKey));
+      }
+      combined=await partnerPairCache.get(pairKey);
     }catch{}
     if(combined)return{combined:{...combined,names:[nameA,nameB]}};
     // Combined slug not found either. If both halves resolved individually,
