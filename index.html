@@ -406,9 +406,14 @@
         if(!card){
           const title=html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i);
           const pageText=html.replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ');
-          const rank=pageText.match(/(?:#|&num;)?\s*([\d,]+)\s*Rank\b/i);
+          // EDHREC's current rendered pages say "Rank #3,741"; older pages
+          // used "#3,741 Rank". Accept either order.
+          const rank=pageText.match(/\bRank\s*#?\s*([\d,]+)|#\s*([\d,]+)\s*Rank\b/i);
           const name=title?.[1]?.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&#x27;|&#39;/gi,"'").replace(/\s+/g,' ').trim();
-          if(name&&rank)card={name,rank:Number(rank[1].replace(/,/g,'')),cards:[]};
+          if(name&&rank){
+            const rankValue=rank[1]||rank[2];
+            card={name,rank:Number(rankValue.replace(/,/g,'')),cards:[]};
+          }
         }
         if(!card)throw{networkError:true,message:"Could not read EDHREC's page data."};
         {
