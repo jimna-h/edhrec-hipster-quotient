@@ -429,7 +429,10 @@
           const slots=rawCards
             .filter(c=>{if(c.id==null)return true;if(seenIds.has(c.id))return false;seenIds.add(c.id);return true;})
             .map(c=>({name:c.name,cmc:typeof c.cmc==='number'?c.cmc:null,colorIdentity:c.color_identity||[]}));
-          result={name:card.name,rank:card.rank,num_decks:card.num_decks??card.inclusion,sanitized:slug,slots};
+          const componentRanks=Array.isArray(card.cards)
+            ?card.cards.map(c=>c.rank).filter(rank=>Number.isFinite(rank))
+            :[];
+          result={name:card.name,rank:card.rank,num_decks:card.num_decks??card.inclusion,sanitized:slug,slots,componentRanks};
         }
       }
     }catch(err){
@@ -481,10 +484,9 @@
       combined=await throttle(async()=>{
         for(const slug of [...new Set(pairSlugs)]){
           const candidate=await fetchCommanderCard(slug);
-          // Require evidence of two distinct commanders as well as a rank.
-          // fetchCommanderCard deduplicates repeated IDs, so a double-faced
-          // single commander still has one slot while a true pair has two.
-          if(candidate&&candidate.rank!=null&&candidate.slots.length>=2)return candidate;
+          // A page with two component ranks is just reporting the commanders
+          // separately. Prefer the orientation whose page has one combined rank.
+          if(candidate&&candidate.rank!=null&&candidate.componentRanks.length<2)return candidate;
         }
         return null;
       });
