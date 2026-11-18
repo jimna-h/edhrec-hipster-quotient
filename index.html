@@ -486,10 +486,15 @@
       if(!partnerPairCache.has(pairKey)){
         const lookup=throttle(async()=>{
           for(const slug of [...new Set(pairSlugs)]){
-            const candidate=await fetchCommanderCard(slug);
-            // A page with two component ranks is just reporting the commanders
-            // separately. Prefer the orientation whose page has one combined rank.
-            if(candidate&&candidate.rank!=null&&candidate.componentRanks.length<2)return candidate;
+            try{
+              const candidate=await fetchCommanderCard(slug);
+              // A page with two component ranks is just reporting the commanders
+              // separately. Prefer the orientation whose page has one combined rank.
+              if(candidate&&candidate.rank!=null&&candidate.componentRanks.length<2)return candidate;
+            }catch{
+              // A failed request for one slug order must not prevent trying
+              // the opposite order, which may be EDHREC's valid pair page.
+            }
           }
           return null;
         });
