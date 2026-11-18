@@ -459,11 +459,17 @@
     // exist and have full rank data.
     const slugA=sanitizeForMatch(nameA),slugB=sanitizeForMatch(nameB);
     const combinedSlug=`${slugA}-${slugB}`,combinedSlugReversed=`${slugB}-${slugA}`;
-    const combined=await throttle(async()=>{
-      const first=await fetchCommanderCard(combinedSlug);
-      if(first)return first;
-      return fetchCommanderCard(combinedSlugReversed);
-    });
+    // A combined EDHREC page can be missing or malformed even when the
+    // individual commander pages are valid. Keep that failure local so the
+    // pair can still be shown as two separate lookups.
+    let combined=null;
+    try{
+      combined=await throttle(async()=>{
+        const first=await fetchCommanderCard(combinedSlug);
+        if(first)return first;
+        return fetchCommanderCard(combinedSlugReversed);
+      });
+    }catch{}
     if(combined)return{combined:{...combined,names:[nameA,nameB]}};
     // Combined slug not found either. If both halves resolved individually,
     // show them separately. If one failed (e.g. a Background with no solo
