@@ -431,7 +431,9 @@
             .map(c=>({name:c.name,cmc:typeof c.cmc==='number'?c.cmc:null,colorIdentity:c.color_identity||[]}));
           const pairNames=Array.isArray(card.names)&&card.names.length>1
             ?card.names
-            :rawCards.map(c=>c.name).filter(Boolean);
+            :(typeof card.name==='string'&&card.name.includes('//')
+              ?card.name.split(/\s*\/\/\s*/)
+              :rawCards.map(c=>c.name).filter(Boolean));
           result={name:card.name,names:pairNames,rank:card.rank,num_decks:card.num_decks??card.inclusion,sanitized:slug,slots};
         }
       }
