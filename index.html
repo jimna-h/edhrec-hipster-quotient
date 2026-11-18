@@ -470,16 +470,22 @@
     // but their combined pages (e.g. burakos-party-leader-sword-coast-sailor)
     // exist and have full rank data.
     const slugA=sanitizeForMatch(nameA),slugB=sanitizeForMatch(nameB);
-    const combinedSlug=`${slugA}-${slugB}`,combinedSlugReversed=`${slugB}-${slugA}`;
+    // EDHREC canonicalizes pair pages alphabetically (for example, Ikra
+    // Shidiqi before Malcolm). Request that canonical slug first so a valid
+    // response to the noncanonical order cannot mask the real pair page.
+    const [canonicalA,canonicalB]=[slugA,slugB].sort((a,b)=>a.localeCompare(b));
+    const pairSlugs=[`${canonicalA}-${canonicalB}`,`${canonicalB}-${canonicalA}`];
     // A combined EDHREC page can be missing or malformed even when the
     // individual commander pages are valid. Keep that failure local so the
     // pair can still be shown as two separate lookups.
     let combined=null;
     try{
       combined=await throttle(async()=>{
-        const first=await fetchCommanderCard(combinedSlug);
-        if(first)return first;
-        return fetchCommanderCard(combinedSlugReversed);
+        for(const slug of pairSlugs){
+          const candidate=await fetchCommanderCard(slug);
+          if(candidate)return candidate;
+        }
+        return null;
       });
     }catch{}
     if(combined)return{combined:{...combined,names:[nameA,nameB]}};
