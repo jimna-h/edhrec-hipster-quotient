@@ -481,7 +481,10 @@
       combined=await throttle(async()=>{
         for(const slug of [...new Set(pairSlugs)]){
           const candidate=await fetchCommanderCard(slug);
-          if(candidate&&candidate.rank!=null)return candidate;
+          // Require evidence of two distinct commanders as well as a rank.
+          // fetchCommanderCard deduplicates repeated IDs, so a double-faced
+          // single commander still has one slot while a true pair has two.
+          if(candidate&&candidate.rank!=null&&candidate.slots.length>=2)return candidate;
         }
         return null;
       });
