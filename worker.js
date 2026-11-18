@@ -22,14 +22,19 @@ export default {
       return new Response('Not found', { status: 404, headers: corsHeaders() });
     }
 
-    const target = `https://edhrec.com${url.pathname}`;
+    const slug = url.pathname.slice('/commanders/'.length);
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+      return new Response('Invalid commander slug', { status: 400, headers: corsHeaders() });
+    }
+    // EDHREC's current frontend loads commander data from this JSON endpoint.
+    const target = `https://json.edhrec.com/pages/commanders/${slug}.json`;
 
     try {
       const upstream = await fetch(target, {
         headers: {
           // Use a real browser User-Agent — EDHREC blocks generic/bot agents
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept': 'application/json,text/plain,*/*',
           'Accept-Language': 'en-US,en;q=0.9',
           'Referer': 'https://edhrec.com/',
         },
@@ -42,7 +47,7 @@ export default {
       // 5xx would keep serving the error after EDHREC has recovered.
       const cacheable = upstream.ok || upstream.status === 404;
       const headers = {
-        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Type': upstream.headers.get('Content-Type') || 'application/json; charset=utf-8',
         'Cache-Control': cacheable ? 'public, max-age=300' : 'no-store',
         ...corsHeaders(),
       };
