@@ -26,22 +26,55 @@ export default {
     if (!/^[a-z0-9-]+$/.test(slug)) {
       return new Response('Invalid commander slug', { status: 400, headers: corsHeaders() });
     }
-    // EDHREC's current frontend loads commander data from this JSON endpoint.
-    const target = `https://json.edhrec.com/pages/commanders/${slug}.json`;
-
     try {
-      const upstream = await fetch(target, {
-        headers: {
+      const requestHeaders = {
           // Use a real browser User-Agent — EDHREC blocks generic/bot agents
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           'Accept': 'application/json,text/plain,*/*',
           'Accept-Language': 'en-US,en;q=0.9',
           'Referer': 'https://edhrec.com/',
-        },
+      };
+      let upstream = await fetch(`https://json.edhrec.com/pages/commanders/${slug}.json`, {
+        headers: requestHeaders,
         redirect: 'follow',
       });
 
-      const body = await upstream.text();
+      // Some valid commander pair pages are available on edhrec.com even
+      // when the corresponding static JSON page is missing. Fall back to the
+      // rendered page so the browser parser can read its embedded page data.
+      if (upstream.status === 404) {
+        upstream = await fetch(`https://edhrec.com/commanders/${slug}`, {
+          headers: {
+            ...requestHeaders,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+          redirect: 'follow',
+        });
+      }
+
+      let body = await upstream.text();
+      if (upstream.ok && (upstream.headers.get('Content-Type') || '').includes('json')) {
+        let hasCommanderCard = false;
+        try {
+          const data = JSON.parse(body);
+          hasCommanderCard = !!(
+            data?.container?.json_dict?.card
+            || data?.props?.pageProps?.data?.container?.json_dict?.card
+            || data?.props?.pageProps?.container?.json_dict?.card
+            || data?.props?.pageProps?.data?.card
+          );
+        } catch {}
+        if (!hasCommanderCard) {
+          upstream = await fetch(`https://edhrec.com/commanders/${slug}`, {
+            headers: {
+              ...requestHeaders,
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            },
+            redirect: 'follow',
+          });
+          body = await upstream.text();
+        }
+      }
 
       // Only cache real answers (a page, or a definite 404). Caching a 429 or
       // 5xx would keep serving the error after EDHREC has recovered.
