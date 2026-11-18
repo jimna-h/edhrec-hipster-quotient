@@ -404,7 +404,9 @@
         // Fall back to EDHREC's server-rendered heading and rank when the
         // framework payload is missing or its internal shape changes.
         if(!card){
-          const title=html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i);
+          // EDHREC commander headings have used h1 and h3 markup across
+          // layouts. Use the first page heading rather than assuming h1.
+          const title=html.match(/<h[1-3]\b[^>]*>([\s\S]*?)<\/h[1-3]>/i);
           const pageText=html.replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ');
           // EDHREC's current rendered pages say "Rank #3,741"; older pages
           // used "#3,741 Rank". Accept either order.
