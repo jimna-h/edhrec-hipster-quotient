@@ -419,7 +419,7 @@
             .replace(/\s+/g,' ').trim();
           if(name&&rank){
             const rankValue=rank[1]||rank[2];
-            card={name,rank:Number(rankValue.replace(/,/g,'')),names:name.split(/\s*\/\/\s*/),cards:[]};
+            card={name,rank:Number(rankValue.replace(/,/g,'')),cards:[]};
           }
         }
         if(!card)throw{networkError:true,message:"Could not read EDHREC's page data."};
@@ -429,12 +429,7 @@
           const slots=rawCards
             .filter(c=>{if(c.id==null)return true;if(seenIds.has(c.id))return false;seenIds.add(c.id);return true;})
             .map(c=>({name:c.name,cmc:typeof c.cmc==='number'?c.cmc:null,colorIdentity:c.color_identity||[]}));
-          const pairNames=Array.isArray(card.names)&&card.names.length>1
-            ?card.names
-            :(typeof card.name==='string'&&card.name.includes('//')
-              ?card.name.split(/\s*\/\/\s*/)
-              :rawCards.map(c=>c.name).filter(Boolean));
-          result={name:card.name,names:pairNames,rank:card.rank,num_decks:card.num_decks??card.inclusion,sanitized:slug,slots};
+          result={name:card.name,rank:card.rank,num_decks:card.num_decks??card.inclusion,sanitized:slug,slots};
         }
       }
     }catch(err){
@@ -475,11 +470,9 @@
     // but their combined pages (e.g. burakos-party-leader-sword-coast-sailor)
     // exist and have full rank data.
     const slugA=sanitizeForMatch(nameA),slugB=sanitizeForMatch(nameB);
-    // Try the entered order and then the reverse. EDHREC's pair order is not
-    // consistently alphabetical, so accept a result only when its card data
-    // identifies both requested commanders.
+    // Try both orders. EDHREC's canonical order varies by pair; use whichever
+    // page returns a combined rank.
     const pairSlugs=[`${slugA}-${slugB}`,`${slugB}-${slugA}`];
-    const expectedNames=new Set([slugA,slugB]);
     // A combined EDHREC page can be missing or malformed even when the
     // individual commander pages are valid. Keep that failure local so the
     // pair can still be shown as two separate lookups.
@@ -488,9 +481,7 @@
       combined=await throttle(async()=>{
         for(const slug of [...new Set(pairSlugs)]){
           const candidate=await fetchCommanderCard(slug);
-          if(!candidate)continue;
-          const names=(candidate.names||[]).map(sanitizeForMatch);
-          if(names.length>=2&&[...expectedNames].every(name=>names.includes(name)))return candidate;
+          if(candidate&&candidate.rank!=null)return candidate;
         }
         return null;
       });
