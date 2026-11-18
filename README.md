@@ -20,12 +20,10 @@ commander's own page:
    cards, strips accents, and *deletes* (rather than hyphenates) all
    punctuation — including oddities like the modifier-letter colon in
    "Ratonhnhaké꞉ton".
-3. **Rank extraction** fetches `edhrec.com/commanders/{slug}` and parses the
-   embedded `__NEXT_DATA__` JSON payload for the exact rank, deck count, mana
-   value, and color identity. This deliberately avoids EDHREC's internal
-   Next.js data routes, whose build ID rotates on every deploy and would break
-   silently. The payload shape was verified against commanders ranked from
-   #86 to #2,711.
+3. **Rank extraction** fetches EDHREC's commander page JSON through the
+   Cloudflare Worker and reads the commander card data for rank, deck count,
+   mana value, and color identity. The parser also accepts the older embedded
+   `__NEXT_DATA__` HTML response while cached pages expire.
 4. **Partner pairs and DFCs** are disambiguated by card id: a partner pair
    lists two distinct ids, while a single double-faced commander lists one id
    twice (once per face), which is deduped so the mana curve doesn't

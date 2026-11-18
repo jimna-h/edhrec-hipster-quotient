@@ -378,10 +378,21 @@
       if(res.status===404){result=null;}
       else if(!res.ok){throw{networkError:true,message:`EDHREC returned an error (${res.status}).`};}
       else{
-        const html=await res.text();
-        const match=html.match(/<script\b(?=[^>]*\bid=["']__NEXT_DATA__["'])(?=[^>]*\btype=["']application\/json["'])[^>]*>([\s\S]*?)<\/script>/i);
+        const body=await res.text();
         let card=null;
-        if(match){
+        // EDHREC serves commander page data as JSON; keep the HTML path for
+        // compatibility with cached or older proxy responses.
+        try{
+          const parsed=JSON.parse(body);
+          card=parsed?.container?.json_dict?.card
+            ||parsed?.props?.pageProps?.data?.container?.json_dict?.card
+            ||parsed?.props?.pageProps?.container?.json_dict?.card
+            ||parsed?.props?.pageProps?.data?.card
+            ||null;
+        }catch{}
+        const html=body;
+        const match=html.match(/<script\b(?=[^>]*\bid=["']__NEXT_DATA__["'])(?=[^>]*\btype=["']application\/json["'])[^>]*>([\s\S]*?)<\/script>/i);
+        if(!card&&match){
           try{
             const parsed=JSON.parse(match[1]);
             card=parsed?.props?.pageProps?.data?.container?.json_dict?.card
