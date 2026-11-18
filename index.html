@@ -404,14 +404,19 @@
         // Fall back to EDHREC's server-rendered heading and rank when the
         // framework payload is missing or its internal shape changes.
         if(!card){
-          // EDHREC commander headings have used h1 and h3 markup across
-          // layouts. Use the first page heading rather than assuming h1.
-          const title=html.match(/<h[1-3]\b[^>]*>([\s\S]*?)<\/h[1-3]>/i);
+          // EDHREC's current layout renders its title in a styled div, while
+          // older layouts used heading tags. The document title is the most
+          // stable fallback across both layouts.
+          const title=html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)
+            ||html.match(/<h[1-3]\b[^>]*>([\s\S]*?)<\/h[1-3]>/i);
           const pageText=html.replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ');
           // EDHREC's current rendered pages say "Rank #3,741"; older pages
           // used "#3,741 Rank". Accept either order.
           const rank=pageText.match(/\bRank\s*#?\s*([\d,]+)|#\s*([\d,]+)\s*Rank\b/i);
-          const name=title?.[1]?.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&#x27;|&#39;/gi,"'").replace(/\s+/g,' ').trim();
+          const name=title?.[1]?.replace(/<[^>]*>/g,' ')
+            .replace(/&amp;/g,'&').replace(/&#x27;|&#39;/gi,"'")
+            .replace(/\s*\|\s*EDHREC.*$/i,'').replace(/\s*\(Commander\)\s*$/i,'')
+            .replace(/\s+/g,' ').trim();
           if(name&&rank){
             const rankValue=rank[1]||rank[2];
             card={name,rank:Number(rankValue.replace(/,/g,'')),cards:[]};
